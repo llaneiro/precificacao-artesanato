@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
+import { HeaderSaveButton } from '../src/components/HeaderSaveButton';
 import { FormScrollView } from '../src/components/FormScrollView';
-import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMaterialForm } from '../src/hooks/useMaterialForm';
@@ -15,9 +17,11 @@ export default function MaterialFormScreen() {
     if (await save()) router.back();
   }
 
+  useEffect(() => { if (error) Alert.alert('Não foi possível salvar', error); }, [error]);
+
   return (
     <SafeAreaView edges={['bottom', 'left', 'right']} className="flex-1 bg-gray-50">
-      <Stack.Screen options={{ title: isEditing ? 'Editar material' : 'Novo material' }} />
+      <Stack.Screen options={{ title: isEditing ? 'Editar material' : 'Novo material', headerRight: () => <HeaderSaveButton disabled={loading || !!loadError} saving={saving} onPress={() => void handleSave()} /> }} />
       {loading ? <ActivityIndicator className="mt-8" color="#4f46e5" /> : loadError ? (
         <View className="p-4"><Text className="text-red-600">{loadError}</Text></View>
       ) : (

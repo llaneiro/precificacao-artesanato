@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
+import { HeaderSaveButton } from '../src/components/HeaderSaveButton';
 import { FormScrollView } from '../src/components/FormScrollView';
-import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { TipsCarousel, type Tip } from '../src/components/TipsCarousel';
 import { usePricingForm } from '../src/hooks/usePricingForm';
 
@@ -20,8 +22,11 @@ export default function SalesFeesScreen() {
     { label: 'Pix', value: form.pix, change: form.setPix },
   ];
   async function handleSave() { if (await form.save()) router.back(); }
+  useEffect(() => { if (form.error) Alert.alert('Não foi possível salvar', form.error); }, [form.error]);
+
   return (
     <SafeAreaView edges={['bottom', 'left', 'right']} className="flex-1 bg-gray-50">
+      <Stack.Screen options={{ headerRight: () => <HeaderSaveButton disabled={form.loading || !!form.loadError} saving={form.saving} onPress={() => void handleSave()} /> }} />
       {form.loading ? <ActivityIndicator className="mt-8" color="#4f46e5" /> : form.loadError ? (
         <View className="p-4"><Text className="text-red-600">{form.loadError}</Text><TouchableOpacity onPress={() => void form.loadSettings()} className="p-3"><Text className="text-indigo-600">Tentar novamente</Text></TouchableOpacity></View>
       ) : (

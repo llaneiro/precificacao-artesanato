@@ -6,9 +6,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const NAV_ITEMS = [
   { route: '/', label: 'Início', icon: 'home-outline', activeIcon: 'home' },
-  { route: '/materials', label: 'Materiais', icon: 'layers-outline', activeIcon: 'layers' },
   { route: '/products', label: 'Produtos', icon: 'cube-outline', activeIcon: 'cube' },
-  { route: '/expenses', label: 'Despesas', icon: 'wallet-outline', activeIcon: 'wallet' },
+  { route: '/materials', label: 'Materiais', icon: 'layers-outline', activeIcon: 'layers' },
+  { route: '/expenses', label: 'Financeiro', icon: 'wallet-outline', activeIcon: 'wallet' },
   { route: '/more', label: 'Mais', icon: 'ellipsis-horizontal-outline', activeIcon: 'ellipsis-horizontal' },
 ] as const satisfies readonly {
   route: string;

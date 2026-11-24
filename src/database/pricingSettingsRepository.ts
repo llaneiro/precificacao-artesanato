@@ -24,3 +24,11 @@ export async function saveSalesFees(userId: string, input: SalesFees): Promise<v
     ON CONFLICT(userId) DO UPDATE SET debitBps=excluded.debitBps, creditBps=excluded.creditBps, pixBps=excluded.pixBps
   `, userId, input.debitBps, input.creditBps, input.pixBps);
 }
+
+export async function saveProfitMargin(userId: string, marginBps: number | null): Promise<void> {
+  const db = await getDatabase();
+  await db.runAsync(`
+    INSERT INTO pricing_settings (userId, marginBps) VALUES (?, ?)
+    ON CONFLICT(userId) DO UPDATE SET marginBps=excluded.marginBps
+  `, userId, marginBps);
+}

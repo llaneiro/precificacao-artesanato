@@ -26,7 +26,7 @@ function RootLayoutNav() {
         <Stack.Screen name="index" options={{ title: 'Precificação Artesanal', headerBackVisible: false, gestureEnabled: false }} />
         <Stack.Screen name="materials" options={{ title: 'Materiais', headerBackVisible: false, gestureEnabled: false }} />
         <Stack.Screen name="products" options={{ title: 'Produtos', headerBackVisible: false, gestureEnabled: false }} />
-        <Stack.Screen name="expenses" options={{ title: 'Despesas', headerBackVisible: false, gestureEnabled: false }} />
+        <Stack.Screen name="expenses" options={{ title: 'Central financeira', headerBackVisible: false, gestureEnabled: false }} />
         <Stack.Screen name="more" options={{ title: 'Mais', headerBackVisible: false, gestureEnabled: false }} />
         <Stack.Screen name="fixed-expenses" options={{ title: 'Despesas fixas' }} />
         <Stack.Screen name="additional-expenses" options={{ title: 'Despesas adicionais' }} />
@@ -34,6 +34,9 @@ function RootLayoutNav() {
         <Stack.Screen name="sales-fees" options={{ title: 'Taxas sobre vendas' }} />
         <Stack.Screen name="labor-settings" options={{ title: 'Mão de obra' }} />
         <Stack.Screen name="expense-form" options={{ title: 'Nova despesa' }} />
+        <Stack.Screen name="product-pricing" options={{ title: 'Precificação' }} />
+        <Stack.Screen name="product-details" options={{ title: 'Detalhes do produto' }} />
+        <Stack.Screen name="profit-margin" options={{ title: 'Margem de lucro' }} />
         <Stack.Screen name="product-form" options={{ title: 'Novo produto' }} />
         <Stack.Screen name="material-form" options={{ title: 'Novo material' }} />
       </Stack.Protected>

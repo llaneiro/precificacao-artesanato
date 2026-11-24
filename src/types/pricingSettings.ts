@@ -12,6 +12,7 @@ export interface SalesFees {
 }
 export interface PricingSettings extends SalesFees {
   userId: string;
+  marginBps: number | null;
   laborMode: LaborMode | null;
   productiveHours: number | null;
   hourlyCostCents: number | null;

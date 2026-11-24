@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Text, TouchableOpacity, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
+import { HeaderAddButton } from '../src/components/HeaderAddButton';
 import { MainScreen } from '../src/components/MainScreen';
 import { useMaterials } from '../src/hooks/useMaterials';
 import { Material } from '../src/types/material';
@@ -35,10 +36,12 @@ export default function MaterialsScreen() {
 
   return (
     <MainScreen route="/materials">
+      <Stack.Screen options={{
+        headerRight: () => (
+          <HeaderAddButton label="Novo material" disabled={deleting} onPress={() => router.push('/material-form')} />
+        ),
+      }} />
       <View className="flex-1 p-4">
-        <TouchableOpacity className="bg-indigo-600 rounded-xl p-4 mb-4" onPress={() => router.push('/material-form')}>
-          <Text className="text-white text-center font-bold">+ Novo material</Text>
-        </TouchableOpacity>
         {error ? (
           <View className="items-center py-8">
             <Text className="text-red-600 text-center">{error}</Text>
@@ -55,7 +58,7 @@ export default function MaterialsScreen() {
             refreshing={loading}
             onRefresh={() => void loadMaterials()}
             contentContainerStyle={{ flexGrow: 1 }}
-            ListEmptyComponent={<EmptyState title="Nenhum material cadastrado" subtitle="Toque em Novo material para começar." />}
+            ListEmptyComponent={<EmptyState title="Nenhum material cadastrado" subtitle="Toque em + Novo no cabeçalho para começar." />}
             renderItem={({ item }) => (
               <MaterialItem material={item} disabled={deleting}
                 onEdit={id => router.push({ pathname: '/material-form', params: { id: String(id) } })}

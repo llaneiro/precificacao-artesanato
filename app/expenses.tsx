@@ -27,7 +27,7 @@ export default function ExpensesScreen() {
   return (
     <MainScreen route="/expenses">
       <ScrollView contentContainerStyle={{ padding: 16 }}>
-        <TipsCarousel title="Dicas de despesas" tips={TIPS} />
+        <TipsCarousel title="Dicas financeiras" tips={TIPS} />
         <View className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 mb-4">
           <Text className="text-gray-600 font-medium">Despesas fixas mensais</Text>
           <Text className="text-2xl text-indigo-700 font-bold mt-1">{monthly}</Text>
@@ -37,6 +37,7 @@ export default function ExpensesScreen() {
         <CostSectionItem title="Taxas sobre vendas" description="Débito, crédito à vista e Pix" summary={pricing.error ? 'Indisponível' : pricing.loading ? 'Carregando...' : feeCount ? feeCount + ' formas configuradas' : 'Não configuradas'} icon="card-outline" onPress={() => router.push('/sales-fees')} />
         <CostSectionItem title="Despesas adicionais" description="Serviços, fretes e gastos por peça" summary={additional.error ? 'Indisponível' : additional.loading ? 'Carregando...' : additional.expenses.length + ' cadastradas'} icon="cube-outline" onPress={() => router.push('/additional-expenses')} />
         <CostSectionItem title="Mão de obra" description="Remuneração e horas produtivas" summary={pricing.error ? 'Indisponível' : pricing.loading ? 'Carregando...' : hourly === null ? 'Não configurada' : formatCurrency(Math.round(hourly)) + ' / hora'} icon="time-outline" onPress={() => router.push('/labor-settings')} />
+        <CostSectionItem title="Margem de lucro padrão" description="Percentual inicial para novas precificações" summary={pricing.error ? 'Indisponível' : pricing.loading ? 'Carregando...' : pricing.settings?.marginBps == null ? 'Não configurada' : (pricing.settings.marginBps / 100).toLocaleString('pt-BR') + '%'} icon="trending-up-outline" onPress={() => router.push('/profit-margin')} />
       </ScrollView>
     </MainScreen>
   );

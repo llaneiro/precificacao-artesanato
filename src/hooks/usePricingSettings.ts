@@ -38,5 +38,14 @@ export function usePricingSettings(loadOnFocus = true) {
     await Repository.saveSalesFees(userId, parseFees(debit, credit, pix));
   }, [userId]);
 
-  return { settings, loading, error, loadSettings, saveLabor, saveFees };
+  const saveMargin = useCallback(async (value: string) => {
+    if (!userId) throw new Error('Faça login para configurar a margem.');
+    const trimmed = value.trim();
+    if (trimmed && !/^\d+(?:[,.]\d{1,2})?$/.test(trimmed)) throw new Error('Informe uma margem com até duas casas decimais.');
+    const bps = trimmed ? Math.round(Number(trimmed.replace(',', '.')) * 100) : null;
+    if (bps !== null && (!Number.isSafeInteger(bps) || bps < 0 || bps >= 10000)) throw new Error('A margem deve estar entre 0% e 99,99%.');
+    await Repository.saveProfitMargin(userId, bps);
+  }, [userId]);
+
+  return { settings, loading, error, loadSettings, saveLabor, saveFees, saveMargin };
 }

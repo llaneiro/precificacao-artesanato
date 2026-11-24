@@ -1,8 +1,9 @@
+import { HeaderSaveButton } from '../src/components/HeaderSaveButton';
 import { FormScrollView } from '../src/components/FormScrollView';
-import { ActivityIndicator, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ActivityIndicator, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useProductForm } from '../src/hooks/useProductForm';
 import { formatCurrency } from '../src/utils/currency';
 
@@ -19,9 +20,11 @@ export default function ProductFormScreen() {
     if (await form.save()) router.back();
   }
 
+  useEffect(() => { if (form.error) Alert.alert('Não foi possível salvar', form.error); }, [form.error]);
+
   return (
     <SafeAreaView edges={['bottom', 'left', 'right']} className="flex-1 bg-gray-50">
-      <Stack.Screen options={{ title: form.isEditing ? 'Editar produto' : 'Novo produto' }} />
+      <Stack.Screen options={{ title: form.isEditing ? 'Editar produto' : 'Novo produto', headerRight: () => <HeaderSaveButton disabled={form.loading || form.materialsLoading || form.additionalLoading || !!form.loadError || !!form.materialsError || !!form.additionalError} saving={form.saving} onPress={() => void handleSave()} /> }} />
       {form.loading || form.materialsLoading || form.additionalLoading ? <ActivityIndicator className="mt-8" color="#4f46e5" /> : form.loadError || form.materialsError || form.additionalError ? (
         <View className="p-4">
           <Text className="text-red-600">{form.loadError ?? form.materialsError ?? form.additionalError}</Text>

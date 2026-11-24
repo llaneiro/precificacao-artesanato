@@ -158,4 +158,9 @@ async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
       )
     );
   `);
+  const pricingColumns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(pricing_settings)');
+  if (!pricingColumns.some(column => column.name === 'marginBps')) {
+    await db.execAsync("ALTER TABLE pricing_settings ADD COLUMN marginBps INTEGER CHECK(marginBps IS NULL OR (typeof(marginBps) = 'integer' AND marginBps BETWEEN 0 AND 9999))");
+  }
+
 }

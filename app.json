@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "precificacao-artesanal-novo",
-    "slug": "precificacao-artesanal-novo",
+    "name": "Precificação Artesanal",
+    "slug": "precificacao-artesanal",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -19,7 +19,16 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-status-bar",
+      "expo-router",
+      "expo-sqlite",
+      "expo-web-browser",
+      "expo-font"
+    ],
+    "scheme": "precificacao-artesanal"
   }
 }

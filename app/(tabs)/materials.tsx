@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Text, TouchableOpacity, View } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
-import { HeaderAddButton } from '../src/components/HeaderAddButton';
-import { MainScreen } from '../src/components/MainScreen';
-import { useMaterials } from '../src/hooks/useMaterials';
-import { Material } from '../src/types/material';
-import { EmptyState } from '../src/components/EmptyState';
-import { MaterialItem } from '../src/components/MaterialItem';
+import { Tabs, useRouter } from 'expo-router';
+import { HeaderAddButton } from '../../src/components/HeaderAddButton';
+import { MainScreen } from '../../src/components/MainScreen';
+import { useMaterials } from '../../src/hooks/useMaterials';
+import { Material } from '../../src/types/material';
+import { EmptyState } from '../../src/components/EmptyState';
+import { MaterialItem } from '../../src/components/MaterialItem';
 
 export default function MaterialsScreen() {
   const router = useRouter();
@@ -35,8 +35,8 @@ export default function MaterialsScreen() {
   }
 
   return (
-    <MainScreen route="/materials">
-      <Stack.Screen options={{
+    <MainScreen>
+      <Tabs.Screen options={{
         headerRight: () => (
           <HeaderAddButton label="Novo material" disabled={deleting} onPress={() => router.push('/material-form')} />
         ),

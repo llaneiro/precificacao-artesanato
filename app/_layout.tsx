@@ -23,11 +23,7 @@ function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerStyle: { backgroundColor: '#4f46e5' }, headerTintColor: '#fff', statusBarStyle: user ? 'light' : 'dark' }}>
       <Stack.Protected guard={!!user}>
-        <Stack.Screen name="index" options={{ title: 'Precificação Artesanal', headerBackVisible: false, gestureEnabled: false }} />
-        <Stack.Screen name="materials" options={{ title: 'Materiais', headerBackVisible: false, gestureEnabled: false }} />
-        <Stack.Screen name="products" options={{ title: 'Produtos', headerBackVisible: false, gestureEnabled: false }} />
-        <Stack.Screen name="expenses" options={{ title: 'Central financeira', headerBackVisible: false, gestureEnabled: false }} />
-        <Stack.Screen name="more" options={{ title: 'Mais', headerBackVisible: false, gestureEnabled: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="fixed-expenses" options={{ title: 'Despesas fixas' }} />
         <Stack.Screen name="additional-expenses" options={{ title: 'Despesas adicionais' }} />
         <Stack.Screen name="additional-expense-form" options={{ title: 'Nova despesa adicional' }} />

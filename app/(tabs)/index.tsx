@@ -1,9 +1,9 @@
 import { Text, View } from 'react-native';
-import { MainScreen } from '../src/components/MainScreen';
+import { MainScreen } from '../../src/components/MainScreen';
 
 export default function HomeScreen() {
   return (
-    <MainScreen route="/">
+    <MainScreen>
       <View className="flex-1 p-4">
         <View className="bg-white border border-gray-200 rounded-xl p-4">
           <Text className="text-lg font-semibold text-gray-800 mb-2">Bem-vindo!</Text>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Alert, ScrollView, Text, TouchableOpacity } from 'react-native';
-import { MainScreen } from '../src/components/MainScreen';
-import { useAuthContext } from '../src/contexts/AuthContext';
+import { MainScreen } from '../../src/components/MainScreen';
+import { useAuthContext } from '../../src/contexts/AuthContext';
 
 export default function MoreScreen() {
   const { user, signOut } = useAuthContext();
@@ -19,7 +19,7 @@ export default function MoreScreen() {
   }
 
   return (
-    <MainScreen route="/more">
+    <MainScreen>
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         <Text className="text-lg font-bold text-gray-800 mb-2">Minha conta</Text>
         <Text className="text-gray-600 mb-4">{user?.email}</Text>

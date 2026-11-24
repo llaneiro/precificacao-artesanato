@@ -1,18 +1,18 @@
 import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
-import { HeaderAddButton } from '../src/components/HeaderAddButton';
-import { EmptyState } from '../src/components/EmptyState';
-import { MainScreen } from '../src/components/MainScreen';
-import { ProductItem } from '../src/components/ProductItem';
-import { useProducts } from '../src/hooks/useProducts';
+import { Tabs, useRouter } from 'expo-router';
+import { HeaderAddButton } from '../../src/components/HeaderAddButton';
+import { EmptyState } from '../../src/components/EmptyState';
+import { MainScreen } from '../../src/components/MainScreen';
+import { ProductItem } from '../../src/components/ProductItem';
+import { useProducts } from '../../src/hooks/useProducts';
 
 export default function ProductsScreen() {
   const router = useRouter();
   const { products, loading, error, loadProducts } = useProducts();
 
   return (
-    <MainScreen route="/products">
-      <Stack.Screen options={{
+    <MainScreen>
+      <Tabs.Screen options={{
         headerRight: () => (
           <HeaderAddButton label="Novo produto" onPress={() => router.push('/product-form')} />
         ),

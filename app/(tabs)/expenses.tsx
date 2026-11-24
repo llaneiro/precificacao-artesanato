@@ -1,13 +1,13 @@
 import { ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MainScreen } from '../src/components/MainScreen';
-import { TipsCarousel, type Tip } from '../src/components/TipsCarousel';
-import { CostSectionItem } from '../src/components/CostSectionItem';
-import { useExpenses } from '../src/hooks/useExpenses';
-import { useAdditionalExpenses } from '../src/hooks/useAdditionalExpenses';
-import { usePricingSettings } from '../src/hooks/usePricingSettings';
-import { hourlyRate } from '../src/types/pricingSettings';
-import { formatCurrency } from '../src/utils/currency';
+import { MainScreen } from '../../src/components/MainScreen';
+import { TipsCarousel, type Tip } from '../../src/components/TipsCarousel';
+import { CostSectionItem } from '../../src/components/CostSectionItem';
+import { useExpenses } from '../../src/hooks/useExpenses';
+import { useAdditionalExpenses } from '../../src/hooks/useAdditionalExpenses';
+import { usePricingSettings } from '../../src/hooks/usePricingSettings';
+import { hourlyRate } from '../../src/types/pricingSettings';
+import { formatCurrency } from '../../src/utils/currency';
 
 const TIPS: readonly Tip[] = [
   { title: 'Conheça os custos do seu negócio', description: 'Organize seus gastos mensais, custos por peça, taxas de venda e remuneração. Cada tipo entra no preço de uma forma diferente.', icon: 'bulb-outline', iconColor: '#d97706' },
@@ -25,7 +25,7 @@ export default function ExpensesScreen() {
   const feeCount = pricing.settings ? [pricing.settings.debitBps, pricing.settings.creditBps, pricing.settings.pixBps].filter(v => v !== null).length : 0;
   const monthly = fixed.error ? 'Indisponível' : fixed.loading ? 'Carregando...' : fixed.totalMonthlyCostCents === null ? 'Total acima do limite' : formatCurrency(fixed.totalMonthlyCostCents);
   return (
-    <MainScreen route="/expenses">
+    <MainScreen>
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         <TipsCarousel title="Dicas financeiras" tips={TIPS} />
         <View className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 mb-4">

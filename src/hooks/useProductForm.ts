@@ -1,3 +1,4 @@
+import { compatibleUnits, convertQuantity } from '../types/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useMaterials } from './useMaterials';
 import { useAdditionalExpenses } from './useAdditionalExpenses';
@@ -5,7 +6,7 @@ import { useProducts } from './useProducts';
 import { getMaterialCostCents, ProductMaterial } from '../types/product';
 import { deleteProductPhoto, getProductPhotoUri, pickProductPhoto, saveProductPhoto } from '../services/productPhoto';
 
-type SelectedMaterial = { materialId: number; quantity: string };
+type SelectedMaterial = { materialId: number; quantity: string; usageUnit: string };
 type Fields = { name: string; description: string; hours: string; minutes: string };
 const EMPTY_FIELDS: Fields = { name: '', description: '', hours: '', minutes: '' };
 
@@ -66,7 +67,7 @@ export function useProductForm(id?: string) {
           hours: String(Math.floor(product.productionMinutes / 60)),
           minutes: String(product.productionMinutes % 60),
         });
-        setSelected(product.materials.map(m => ({ materialId: m.materialId, quantity: String(m.quantityUsed).replace('.', ',') })));
+        setSelected(product.materials.map(m => ({ materialId: m.materialId, quantity: String(m.quantityUsed).replace('.', ','), usageUnit: m.usageUnit ?? m.unit })));
         setSelectedAdditional(product.additionalExpenses.map(e => ({ expenseId: e.expenseId, quantity: String(e.quantity) })));
         setPhotoFilename(product.photoFilename);
       } catch (error) {
@@ -83,11 +84,15 @@ export function useProductForm(id?: string) {
     setError(null);
   };
   const addMaterial = (materialId: number) => {
-    setSelected(old => old.some(m => m.materialId === materialId) ? old : [...old, { materialId, quantity: '' }]);
+    setSelected(old => old.some(m => m.materialId === materialId) ? old : [...old, { materialId, quantity: '', usageUnit: compatibleUnits(materials.find(m => m.id === materialId)?.unit ?? '')[0] ?? '' }]);
     setError(null);
   };
   const changeQuantity = (materialId: number, quantity: string) => {
     setSelected(old => old.map(m => m.materialId === materialId ? { ...m, quantity } : m));
+    setError(null);
+  };
+  const changeUsageUnit = (materialId: number, usageUnit: string) => {
+    setSelected(old => old.map(m => m.materialId === materialId ? { ...m, usageUnit } : m));
     setError(null);
   };
   const removeMaterial = (materialId: number) => setSelected(old => old.filter(m => m.materialId !== materialId));
@@ -138,8 +143,8 @@ export function useProductForm(id?: string) {
       const material = materials.find(m => m.id === selection.materialId);
       if (!material) throw new Error('Um dos materiais não está mais disponível.');
       const quantityUsed = parseQuantity(selection.quantity);
-      if (!Number.isFinite(quantityUsed)) throw new Error('Informe uma quantidade válida para cada material.');
-      return { materialId: material.id, quantityUsed, name: material.name, unit: material.unit, costCents: material.costCents, referenceQuantity: material.quantity };
+      if (!Number.isFinite(convertQuantity(quantityUsed, selection.usageUnit, material.unit))) throw new Error('Informe uma quantidade válida para cada material.');
+      return { materialId: material.id, quantityUsed, usageUnit: selection.usageUnit, name: material.name, unit: material.unit, costCents: material.costCents, referenceQuantity: material.quantity };
     });
   }
 
@@ -168,7 +173,7 @@ export function useProductForm(id?: string) {
         name, description: fields.description.trim() || null, productionMinutes,
         photoFilename: copied ?? photoFilename,
         additionalExpenses: extra.items,
-        materials: linked.map(({ materialId, quantityUsed }) => ({ materialId, quantityUsed })),
+        materials: linked.map(({ materialId, quantityUsed, usageUnit, unit }) => ({ materialId, quantityUsed, usageUnit: usageUnit ?? unit })),
       };
       if (isEditing) await editProduct({ ...input, id: Number(id) });
       else await addProduct(input);
@@ -184,7 +189,7 @@ export function useProductForm(id?: string) {
   }
 
   return {
-    fields, setField, selected, addMaterial, changeQuantity, removeMaterial,
+    fields, setField, selected, addMaterial, changeQuantity, changeUsageUnit, removeMaterial,
     materials, materialsLoading, materialsError, loadMaterials,
     additionalExpenses, additionalLoading, additionalError, loadAdditionalExpenses, selectedAdditional, addAdditional, removeAdditional, changeAdditionalQuantity, additionalCostCents,
     photoUri: newPhoto ?? getProductPhotoUri(photoFilename), choosePhoto, removePhoto,

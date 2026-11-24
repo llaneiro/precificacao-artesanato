@@ -73,7 +73,7 @@ export default function ProductDetailsScreen() {
               {product.materials.map((m, i) => <View key={m.materialId} className={'flex-row items-center gap-3 py-3 ' + (i ? 'border-t border-gray-100' : '')}>
                 <View className="bg-gray-100 rounded-lg p-2"><Ionicons name="layers-outline" size={22} color="#6b7280" /></View>
                 <View className="flex-1"><Text className="font-semibold text-gray-800">{m.name}</Text></View>
-                <Text className="font-semibold text-gray-800">{m.quantityUsed.toLocaleString('pt-BR')} {m.unit}</Text>
+                <Text className="font-semibold text-gray-800">{m.quantityUsed.toLocaleString('pt-BR')} {m.usageUnit ?? m.unit}</Text>
               </View>)}
             </View>
           </View>

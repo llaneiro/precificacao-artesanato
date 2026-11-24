@@ -132,7 +132,7 @@ export default function PricingHistoryDetailsScreen() {
             <Text className="font-bold text-gray-700 mt-4 mb-2">Materiais</Text>
             {snapshot.materials.map(material => <View key={material.materialId} className="border-b border-gray-100 py-2">
               <Text className="font-semibold text-gray-800">{material.name}</Text>
-              <Text className="text-gray-600 text-sm">Utilizado: {material.quantityUsed.toLocaleString('pt-BR')} {material.unit}</Text>
+              <Text className="text-gray-600 text-sm">Utilizado: {material.quantityUsed.toLocaleString('pt-BR')} {material.usageUnit ?? material.unit}</Text>
               <Text className="text-gray-600 text-sm">Referência: {formatCurrency(material.costCents)} por {material.referenceQuantity.toLocaleString('pt-BR')} {material.unit}</Text>
             </View>)}
             <Text className="font-bold text-gray-700 mt-4 mb-2">Despesas adicionais</Text>

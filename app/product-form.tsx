@@ -1,3 +1,5 @@
+import { CompactUnitSelect } from '../src/components/MeasureCategorySelect';
+import { compatibleUnits, convertQuantity } from '../src/types/material';
 import { HelpLabel } from '../src/components/HelpTip';
 import { HeaderSaveButton } from '../src/components/HeaderSaveButton';
 import { FormScrollView } from '../src/components/FormScrollView';
@@ -61,15 +63,19 @@ export default function ProductFormScreen() {
           {form.selected.map(selection => {
             const material = form.materials.find(m => m.id === selection.materialId);
             const qty = Number(selection.quantity.replace(',', '.'));
-            const cost = material && Number.isFinite(qty) && qty > 0 ? material.costCents / material.quantity * qty / 100 : null;
+            const converted = material ? convertQuantity(qty, selection.usageUnit, material.unit) : NaN;
+            const cost = material && Number.isFinite(converted) ? material.costCents / material.quantity * converted / 100 : null;
             return (
               <View key={selection.materialId} className="bg-white border border-gray-200 rounded-xl p-3 mb-3">
                 <View className="flex-row justify-between items-center mb-2 gap-2">
                   <Text className="flex-1 font-bold text-gray-800">{material?.name ?? 'Material indisponível'}</Text>
                   <TouchableOpacity disabled={form.saving} onPress={() => form.removeMaterial(selection.materialId)}><Text className="text-red-600">Remover</Text></TouchableOpacity>
                 </View>
-                <Text className="text-gray-500 mb-1">Quantidade utilizada ({material?.unit ?? '—'})</Text>
-                <TextInput className={inputClass} value={selection.quantity} onChangeText={v => form.changeQuantity(selection.materialId, v)} keyboardType="decimal-pad" placeholder="Ex.: 250" editable={!form.saving} />
+                <Text className="text-gray-500 mb-1">Quantidade utilizada</Text>
+                <View className="flex-row items-center gap-2">
+                  <TextInput className={inputClass + ' flex-1'} value={selection.quantity} onChangeText={v => form.changeQuantity(selection.materialId, v)} keyboardType="decimal-pad" placeholder="Ex.: 250" editable={!form.saving} />
+                  <CompactUnitSelect value={selection.usageUnit} units={compatibleUnits(material?.unit ?? '')} onChange={v => form.changeUsageUnit(selection.materialId, v)} disabled={form.saving} />
+                </View>
                 {cost !== null && <Text className="text-gray-600">Custo estimado: {cost.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</Text>}
               </View>
             );

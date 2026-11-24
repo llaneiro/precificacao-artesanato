@@ -7,7 +7,7 @@ export { parseCostCents } from '../utils/currency';
 const EMPTY_FIELDS = { name: '', cost: '', quantity: '', unit: '' };
 type MaterialFields = typeof EMPTY_FIELDS;
 
-function parseQuantity(value: string): number {
+export function parseQuantity(value: string): number {
   if (!/^\d+(?:[,.]\d+)?$/.test(value.trim())) {
     throw new Error('Informe uma quantidade válida.');
   }
@@ -88,9 +88,8 @@ export function useMaterialForm(id?: string) {
     setSaving(true);
     setError(null);
     try {
-      const input = toInput(fields);
-      if (isEditing) await editMaterial({ ...input, id: Number(id) });
-      else await addMaterial(input);
+      if (isEditing) await editMaterial({ name: fields.name, id: Number(id) });
+      else await addMaterial(toInput(fields));
       return true;
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Não foi possível salvar o material.');

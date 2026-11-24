@@ -62,6 +62,8 @@ export default function MaterialsScreen() {
             renderItem={({ item }) => (
               <MaterialItem material={item} disabled={deleting}
                 onEdit={id => router.push({ pathname: '/material-form', params: { id: String(id) } })}
+                onUpdatePrice={id => router.push({ pathname: '/material-price-form', params: { id: String(id) } })}
+                onHistory={id => router.push({ pathname: '/material-cost-history', params: { id: String(id) } })}
                 onDelete={confirmDelete} />
             )}
           />

@@ -1,3 +1,4 @@
+import { convertQuantity } from '../types/material';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { getDatabase } from './database';
 import { CreateProductInput, ProductAdditionalExpense, ProductAdditionalExpenseInput, Product, ProductDetails, ProductMaterial, ProductMaterialInput, ProductSummary, UpdateProductInput } from '../types/product';
@@ -6,7 +7,7 @@ export async function getProducts(userId: string): Promise<ProductSummary[]> {
   const db = await getDatabase();
   return db.getAllAsync<ProductSummary>(`
     SELECT p.*, COUNT(pm.materialId) AS materialCount,
-      CAST(ROUND(COALESCE(SUM(1.0 * m.costCents / m.quantity * pm.quantityUsed), 0)) AS INTEGER) AS materialCostCents,
+      CAST(ROUND(COALESCE(SUM(1.0 * m.costCents / m.quantity * pm.quantityUsed * (CASE pm.usageUnit WHEN 'kg' THEN 1000 WHEN 'm' THEN 100 WHEN 'l' THEN 1000 ELSE 1 END) / (CASE m.unit WHEN 'kg' THEN 1000 WHEN 'm' THEN 100 WHEN 'l' THEN 1000 ELSE 1 END)), 0)) AS INTEGER) AS materialCostCents,
       COALESCE((SELECT SUM(a.costCents * pa.quantity)
         FROM product_additional_expenses pa
         JOIN additional_expenses a ON a.id = pa.expenseId AND a.userId = pa.userId
@@ -27,7 +28,7 @@ export async function getProductById(userId: string, id: number): Promise<Produc
   );
   if (!product) return null;
   const materials = await db.getAllAsync<ProductMaterial>(`
-    SELECT pm.materialId, pm.quantityUsed, m.name, m.unit, m.costCents, m.quantity AS referenceQuantity
+    SELECT pm.materialId, pm.quantityUsed, pm.usageUnit, m.name, m.unit, m.costCents, m.quantity AS referenceQuantity
     FROM product_materials pm
     JOIN materials m ON m.id = pm.materialId AND m.userId = pm.userId
     WHERE pm.productId = ? AND pm.userId = ?
@@ -45,14 +46,15 @@ export async function getProductById(userId: string, id: number): Promise<Produc
 
 async function insertMaterials(db: SQLiteDatabase, userId: string, productId: number, materials: ProductMaterialInput[]) {
   for (const material of materials) {
-    const exists = await db.getFirstAsync<{ id: number }>(
-      'SELECT id FROM materials WHERE id = ? AND userId = ?', material.materialId, userId,
+    const exists = await db.getFirstAsync<{ id: number; unit: string }>(
+      'SELECT id, unit FROM materials WHERE id = ? AND userId = ?', material.materialId, userId,
     );
     if (!exists) throw new Error('Um dos materiais não está mais disponível.');
+    if (!Number.isFinite(convertQuantity(material.quantityUsed, material.usageUnit, exists.unit))) throw new Error('Unidade incompatível com o material.');
     // As chaves estrangeiras também impedem associação a materiais de outra conta.
     await db.runAsync(
-      'INSERT INTO product_materials (productId, materialId, userId, quantityUsed) VALUES (?, ?, ?, ?)',
-      productId, material.materialId, userId, material.quantityUsed,
+      'INSERT INTO product_materials (productId, materialId, userId, quantityUsed, usageUnit) VALUES (?, ?, ?, ?, ?)',
+      productId, material.materialId, userId, material.quantityUsed, material.usageUnit,
     );
   }
 }

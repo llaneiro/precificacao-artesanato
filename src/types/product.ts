@@ -1,3 +1,4 @@
+import { convertQuantity } from './material';
 export interface Product {
   id: number;
   userId: string;
@@ -11,9 +12,11 @@ export interface Product {
 export interface ProductMaterialInput {
   materialId: number;
   quantityUsed: number;
+  usageUnit: string;
 }
 
-export interface ProductMaterial extends ProductMaterialInput {
+export interface ProductMaterial extends Omit<ProductMaterialInput, 'usageUnit'> {
+  usageUnit?: string;
   name: string;
   unit: string;
   costCents: number;
@@ -57,5 +60,5 @@ export interface UpdateProductInput extends CreateProductInput {
 // Mantém a precisão intermediária e arredonda somente o custo total.
 export function getMaterialCostCents(materials: ProductMaterial[]): number {
   return Math.round(materials.reduce((sum, material) =>
-    sum + material.costCents / material.referenceQuantity * material.quantityUsed, 0));
+    sum + material.costCents / material.referenceQuantity * convertQuantity(material.quantityUsed, material.usageUnit ?? material.unit, material.unit), 0));
 }

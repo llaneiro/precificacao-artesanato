@@ -100,6 +100,100 @@ async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
     END;
   `);
 
+  // Cada associação guarda sua própria unidade; a compra pode mudar dentro da categoria.
+  await db.withTransactionAsync(async () => {
+    const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(product_materials)');
+    if (!columns.some(c => c.name === 'usageUnit')) {
+      await db.execAsync("ALTER TABLE product_materials ADD COLUMN usageUnit TEXT");
+      await db.execAsync(`
+        UPDATE product_materials SET usageUnit = (
+          SELECT m.unit FROM materials m WHERE m.id = product_materials.materialId AND m.userId = product_materials.userId
+        );
+      `);
+    }
+    await db.execAsync(`
+      DROP TRIGGER IF EXISTS prevent_linked_material_unit_change;
+      CREATE TRIGGER IF NOT EXISTS prevent_material_category_change
+      BEFORE UPDATE OF unit ON materials
+      WHEN NOT (
+        NEW.unit = OLD.unit OR
+        (NEW.unit IN ('g','kg') AND OLD.unit IN ('g','kg')) OR
+        (NEW.unit IN ('cm','m') AND OLD.unit IN ('cm','m')) OR
+        (NEW.unit IN ('ml','l') AND OLD.unit IN ('ml','l'))
+      )
+      BEGIN SELECT RAISE(ABORT, 'MATERIAL_CATEGORY_CHANGE'); END;
+      CREATE TRIGGER IF NOT EXISTS validate_product_material_usage_insert
+      BEFORE INSERT ON product_materials
+      WHEN NOT EXISTS (
+        SELECT 1 FROM materials m WHERE m.id = NEW.materialId AND m.userId = NEW.userId AND (
+          NEW.usageUnit = m.unit OR
+          (NEW.usageUnit IN ('g','kg') AND m.unit IN ('g','kg')) OR
+          (NEW.usageUnit IN ('cm','m') AND m.unit IN ('cm','m')) OR
+          (NEW.usageUnit IN ('ml','l') AND m.unit IN ('ml','l'))
+        )
+      )
+      BEGIN SELECT RAISE(ABORT, 'INVALID_USAGE_UNIT'); END;
+      CREATE TRIGGER IF NOT EXISTS validate_product_material_usage_update
+      BEFORE UPDATE ON product_materials
+      WHEN NOT EXISTS (
+        SELECT 1 FROM materials m WHERE m.id = NEW.materialId AND m.userId = NEW.userId AND (
+          NEW.usageUnit = m.unit OR
+          (NEW.usageUnit IN ('g','kg') AND m.unit IN ('g','kg')) OR
+          (NEW.usageUnit IN ('cm','m') AND m.unit IN ('cm','m')) OR
+          (NEW.usageUnit IN ('ml','l') AND m.unit IN ('ml','l'))
+        )
+      )
+      BEGIN SELECT RAISE(ABORT, 'INVALID_USAGE_UNIT'); END;
+    `);
+  });
+
+  // Histórico atômico: cada alteração de referência gera um registro na mesma operação SQL.
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS material_cost_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId TEXT NOT NULL,
+      materialId INTEGER NOT NULL,
+      materialName TEXT NOT NULL,
+      kind TEXT NOT NULL CHECK(kind IN ('baseline', 'created', 'changed')),
+      costCents INTEGER NOT NULL CHECK(typeof(costCents) = 'integer' AND costCents >= 0),
+      quantity REAL NOT NULL CHECK(quantity > 0),
+      unit TEXT NOT NULL,
+      previousCostCents INTEGER,
+      previousQuantity REAL,
+      previousUnit TEXT,
+      recordedAt TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_material_cost_history ON material_cost_history(userId, materialId, id DESC);
+
+    -- Valores já cadastrados são apenas uma referência inicial, não uma compra datada.
+    INSERT INTO material_cost_history (userId, materialId, materialName, kind, costCents, quantity, unit, recordedAt)
+    SELECT m.userId, m.id, m.name, 'baseline', m.costCents, m.quantity, m.unit,
+      strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+    FROM materials m WHERE NOT EXISTS (
+      SELECT 1 FROM material_cost_history h WHERE h.userId = m.userId AND h.materialId = m.id
+    );
+
+    CREATE TRIGGER IF NOT EXISTS record_material_cost_insert
+    AFTER INSERT ON materials
+    BEGIN
+      INSERT INTO material_cost_history (userId, materialId, materialName, kind, costCents, quantity, unit, recordedAt)
+      VALUES (NEW.userId, NEW.id, NEW.name, 'created', NEW.costCents, NEW.quantity, NEW.unit, NEW.createdAt);
+    END;
+
+    DROP TRIGGER IF EXISTS record_material_cost_update;
+    CREATE TRIGGER IF NOT EXISTS record_material_cost_update
+    AFTER UPDATE OF costCents, quantity, unit ON materials
+    BEGIN
+      INSERT INTO material_cost_history (
+        userId, materialId, materialName, kind, costCents, quantity, unit,
+        previousCostCents, previousQuantity, previousUnit, recordedAt
+      ) VALUES (
+        NEW.userId, NEW.id, NEW.name, 'changed', NEW.costCents, NEW.quantity, NEW.unit,
+        OLD.costCents, OLD.quantity, OLD.unit, strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+      );
+    END;
+  `);
+
   // Despesas fixas mensais; valores em centavos, separados por usuário.
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS fixed_expenses (

@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { OptionsMenu } from './OptionsMenu';
 import { Ionicons } from '@expo/vector-icons';
 import { Material } from '../types/material';
@@ -7,11 +7,13 @@ import { formatCurrency } from '../utils/currency';
 interface MaterialItemProps {
   material: Material;
   onEdit: (id: number) => void;
+  onUpdatePrice: (id: number) => void;
+  onHistory: (id: number) => void;
   onDelete: (material: Material) => void;
   disabled?: boolean;
 }
 
-export function MaterialItem({ material, onEdit, onDelete, disabled }: MaterialItemProps) {
+export function MaterialItem({ material, onEdit, onUpdatePrice, onHistory, onDelete, disabled }: MaterialItemProps) {
   const reference = material.quantity.toLocaleString('pt-BR', { maximumFractionDigits: 10 }) + ' ' + material.unit;
   return (
     <View className="bg-white border border-gray-200 rounded-2xl mb-3 overflow-hidden">
@@ -22,6 +24,7 @@ export function MaterialItem({ material, onEdit, onDelete, disabled }: MaterialI
         <Text className="flex-1 text-lg font-bold text-gray-900" numberOfLines={2}>{material.name}</Text>
         <OptionsMenu label={'Opções de ' + material.name} disabled={disabled} actions={[
           { label: 'Editar', icon: 'create-outline', onPress: () => onEdit(material.id) },
+          { label: 'Histórico', icon: 'time-outline', onPress: () => onHistory(material.id) },
           { label: 'Excluir', icon: 'trash-outline', destructive: true, onPress: () => onDelete(material) },
         ]} />
       </View>
@@ -32,6 +35,11 @@ export function MaterialItem({ material, onEdit, onDelete, disabled }: MaterialI
           <Text className="text-gray-600 text-sm">/ {reference}</Text>
         </View>
       </View>
+      <Pressable accessibilityRole="button" disabled={disabled} onPress={() => onUpdatePrice(material.id)}
+        className="mx-4 mb-4 min-h-11 rounded-xl bg-indigo-50 flex-row items-center justify-center gap-2 active:bg-indigo-100">
+        <Ionicons name="refresh-outline" size={19} color="#4f46e5" />
+        <Text className="text-indigo-700 font-semibold">Atualizar preço</Text>
+      </Pressable>
     </View>
   );
 }

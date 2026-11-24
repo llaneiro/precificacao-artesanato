@@ -1,5 +1,5 @@
 import { getDatabase } from './database';
-import { Material, CreateMaterialInput, UpdateMaterialInput } from '../types/material';
+import { Material, CreateMaterialInput, UpdateMaterialInput, UpdateMaterialPriceInput } from '../types/material';
 
 // Busca os materiais do usuário, do mais recente ao mais antigo.
 export async function getMaterials(userId: string): Promise<Material[]> {
@@ -52,15 +52,20 @@ export async function updateMaterial(
 ): Promise<void> {
   const db = await getDatabase();
   const result = await db.runAsync(
-    'UPDATE materials SET name = ?, costCents = ?, quantity = ?, unit = ? WHERE userId = ? AND id = ?',
-    input.name,
-    input.costCents,
-    input.quantity,
-    input.unit,
-    userId,
-    input.id,
+    'UPDATE materials SET name = ? WHERE userId = ? AND id = ?',
+    input.name, userId, input.id,
   );
 
+  if (result.changes === 0) throw new Error('Material não encontrado.');
+}
+
+// Uma atualização explícita registra também a confirmação de um preço inalterado.
+export async function updateMaterialPrice(userId: string, input: UpdateMaterialPriceInput): Promise<void> {
+  const db = await getDatabase();
+  const result = await db.runAsync(
+    'UPDATE materials SET costCents = ?, quantity = ?, unit = ? WHERE userId = ? AND id = ?',
+    input.costCents, input.quantity, input.unit, userId, input.id,
+  );
   if (result.changes === 0) throw new Error('Material não encontrado.');
 }
 

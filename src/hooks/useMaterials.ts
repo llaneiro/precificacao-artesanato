@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { useAuthContext } from '../contexts/AuthContext';
 import * as MaterialRepository from '../database/materialRepository';
-import { Material, CreateMaterialInput, UpdateMaterialInput, isMaterialUnit } from '../types/material';
+import { Material, CreateMaterialInput, UpdateMaterialInput, UpdateMaterialPriceInput, isMaterialUnit } from '../types/material';
 
 // Valida os dados antes de enviá-los ao repositório.
 function validateMaterial(input: CreateMaterialInput): CreateMaterialInput {
@@ -68,21 +68,28 @@ export function useMaterials(loadOnFocus = true) {
   const editMaterial = useCallback(
     async (input: UpdateMaterialInput) => {
       if (!userId) throw new Error('Faça login para editar materiais.');
-      try {
-        await MaterialRepository.updateMaterial(userId, {
-          ...validateMaterial(input),
-          id: input.id,
-        });
-      } catch (error) {
-        if (String(error).includes('MATERIAL_UNIT_IN_USE')) {
-          throw new Error('A unidade não pode ser alterada enquanto o material estiver vinculado a um produto.');
-        }
-        throw error;
-      }
+      const name = input.name.trim();
+      if (!name) throw new Error('Informe o nome do material.');
+      await MaterialRepository.updateMaterial(userId, { id: input.id, name });
       if (loadOnFocus) await loadMaterials();
-    },
-    [userId, loadMaterials, loadOnFocus],
+    }, [userId, loadMaterials, loadOnFocus],
   );
+
+  const updatePrice = useCallback(async (input: UpdateMaterialPriceInput) => {
+    if (!userId) throw new Error('Faça login para atualizar o preço.');
+    const valid = validateMaterial({ ...input, name: 'Material' });
+    try {
+      await MaterialRepository.updateMaterialPrice(userId, {
+        id: input.id, costCents: valid.costCents, quantity: valid.quantity, unit: valid.unit,
+      });
+    } catch (error) {
+      if (String(error).includes('MATERIAL_CATEGORY_CHANGE')) {
+        throw new Error('A unidade precisa pertencer à categoria do material.');
+      }
+      throw error;
+    }
+    if (loadOnFocus) await loadMaterials();
+  }, [userId, loadMaterials, loadOnFocus]);
 
   const removeMaterial = useCallback(
     async (id: number) => {
@@ -106,6 +113,7 @@ export function useMaterials(loadOnFocus = true) {
     getMaterialById,
     addMaterial,
     editMaterial,
+    updatePrice,
     removeMaterial,
   };
 }

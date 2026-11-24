@@ -1,18 +1,12 @@
+import { HelpLabel } from '../src/components/HelpTip';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { EmptyState } from '../src/components/EmptyState';
 import { AdditionalExpenseItem } from '../src/components/AdditionalExpenseItem';
-import { TipsCarousel, type Tip } from '../src/components/TipsCarousel';
 import { useAdditionalExpenses } from '../src/hooks/useAdditionalExpenses';
 import { AdditionalExpense } from '../src/types/additionalExpense';
-
-const EXPENSE_TIPS: readonly Tip[] = [
-  { title: 'Gastos específicos da peça', description: 'Inclua serviços de terceiros, personalizações ou fretes que você paga e que fazem parte do custo de uma peça.', icon: 'cube-outline' },
-  { title: 'Associe ao produto', description: 'Cadastre o custo por utilização aqui e selecione a despesa na ficha do produto. Informe quantas utilizações a peça precisa.', icon: 'link-outline' },
-  { title: 'Evite duplicar custos', description: 'Embalagens e etiquetas ficam em Materiais. Gastos mensais ficam em Despesas fixas. Não registre o mesmo custo duas vezes.', icon: 'bulb-outline', iconColor: '#d97706' },
-];
 
 export default function AdditionalExpensesScreen() {
   const router = useRouter();
@@ -49,7 +43,7 @@ export default function AdditionalExpensesScreen() {
         contentContainerStyle={{ flexGrow: 1, padding: 16 }}
         ListHeaderComponent={(
           <View>
-            <TipsCarousel title="Dicas de despesas" tips={EXPENSE_TIPS} />
+            <HelpLabel title="Custos por peça" message="Serviços e fretes pagos por peça. Associe ao produto. Não duplique materiais ou despesas fixas." className="text-gray-700 font-semibold" />
             <TouchableOpacity disabled={deleting} onPress={() => router.push('/additional-expense-form')} className="bg-indigo-600 rounded-xl p-4 mb-4">
               <Text className="text-white font-bold text-center">+ Nova despesa</Text>
             </TouchableOpacity>

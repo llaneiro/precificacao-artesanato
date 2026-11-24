@@ -191,4 +191,22 @@ async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
     );
   `);
 
+  // Registros históricos independentes: excluir um produto não apaga cálculos salvos.
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS pricing_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId TEXT NOT NULL,
+      productId INTEGER NOT NULL,
+      productName TEXT NOT NULL,
+      mode TEXT NOT NULL CHECK(mode IN ('suggested', 'manual')),
+      totalCostCents INTEGER NOT NULL CHECK(typeof(totalCostCents) = 'integer' AND totalCostCents >= 0),
+      salePriceCents INTEGER NOT NULL CHECK(typeof(salePriceCents) = 'integer' AND salePriceCents > 0),
+      profitCents INTEGER NOT NULL CHECK(typeof(profitCents) = 'integer'),
+      createdAt TEXT NOT NULL,
+      snapshot TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_pricing_history_user_date ON pricing_history(userId, createdAt DESC, id DESC);
+    CREATE INDEX IF NOT EXISTS idx_pricing_history_product_date ON pricing_history(userId, productId, createdAt DESC, id DESC);
+  `);
+
 }

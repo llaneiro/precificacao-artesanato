@@ -24,6 +24,12 @@ export default function MoreScreen() {
   return (
     <MainScreen>
       <ScrollView contentContainerStyle={{ padding: 16 }}>
+        <Text className="text-lg font-bold text-gray-800 mb-3">Ferramentas</Text>
+        <TouchableOpacity accessibilityRole="button" onPress={() => router.push('/pricing-history')} className="bg-white border border-gray-200 rounded-xl p-4 mb-5 flex-row items-center gap-3">
+          <Ionicons name="time-outline" size={24} color="#4f46e5" />
+          <Text className="text-gray-800 font-semibold flex-1">Histórico de precificações</Text>
+          <Ionicons name="chevron-forward" size={18} color="#6b7280" />
+        </TouchableOpacity>
         <Text className="text-lg font-bold text-gray-800 mb-2">Minha conta</Text>
         <Text className="text-gray-600 mb-4">{user?.email}</Text>
         <TouchableOpacity accessibilityRole="button" disabled={busy} onPress={() => router.push('/onboarding')} className="bg-white border border-gray-200 rounded-xl p-4 mb-4 flex-row items-center gap-3">

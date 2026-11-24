@@ -25,9 +25,11 @@ export default function ProductsScreen() {
           </View>
         ) : loading && !products.length ? <ActivityIndicator color="#4f46e5" /> : (
           <FlatList data={products} keyExtractor={item => String(item.id)} refreshing={loading} onRefresh={() => void loadProducts()} contentContainerStyle={{ flexGrow: 1 }}
-            ListEmptyComponent={<EmptyState title="Nenhum produto cadastrado" subtitle="Toque em + Novo no cabeçalho para criar uma ficha técnica." />}
+            ListEmptyComponent={<EmptyState title="Nenhum produto cadastrado" subtitle="Cadastre seu primeiro produto." />}
             renderItem={({ item }) => <ProductItem product={item}
-              onPress={() => router.push({ pathname: '/product-details', params: { id: String(item.id) } })} />}
+              onPress={() => router.push({ pathname: '/product-details', params: { id: String(item.id) } })}
+              onPricing={() => router.push({ pathname: '/product-pricing', params: { id: String(item.id) } })}
+              onHistory={() => router.push({ pathname: '/pricing-history', params: { productId: String(item.id), productName: item.name } })} />}
           />
         )}
       </View>

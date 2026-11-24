@@ -1,3 +1,4 @@
+import { HelpLabel } from '../src/components/HelpTip';
 import { useEffect } from 'react';
 import { HeaderSaveButton } from '../src/components/HeaderSaveButton';
 import { FormScrollView } from '../src/components/FormScrollView';
@@ -28,12 +29,11 @@ export default function MaterialFormScreen() {
         <FormScrollView contentContainerStyle={{ padding: 16 }}>
           <Text className="text-gray-700 font-semibold mb-2">Nome do material</Text>
           <TextInput className={inputClass} value={fields.name} onChangeText={v => setField('name', v)} placeholder="Ex.: Fio de algodão" editable={!saving} />
-          <Text className="text-gray-700 font-semibold mb-2">Preço de referência (R$)</Text>
-          <Text className="text-gray-500 text-sm mb-2">Preço correspondente à quantidade informada abaixo.</Text>
+          <HelpLabel title="Preço de referência (R$)" message="Informe o preço pago pela quantidade de referência. Ex.: R$ 30 por 600 g." className="text-gray-700 font-semibold" />
           <TextInput className={inputClass} value={fields.cost} onChangeText={v => setField('cost', v)} placeholder="Ex.: 30,00" keyboardType="decimal-pad" editable={!saving} />
           <Text className="text-gray-700 font-semibold mb-2">Unidade de medida</Text>
           <MaterialUnitSelect value={fields.unit} onChange={v => setField('unit', v)} disabled={saving} />
-          <Text className="text-gray-700 font-semibold mb-2">Quantidade de material</Text>
+          <Text className="text-gray-700 font-semibold mb-2">Quantidade de referência</Text>
           <TextInput className={inputClass} value={fields.quantity} onChangeText={v => setField('quantity', v)} placeholder="Ex.: 600" keyboardType="decimal-pad" editable={!saving} />
           {error && <Text accessibilityRole="alert" className="text-red-600 mb-4">{error}</Text>}
           <TouchableOpacity disabled={saving} onPress={handleSave} className={'rounded-xl p-4 ' + (saving ? 'bg-indigo-400' : 'bg-indigo-600')}>

@@ -1,3 +1,4 @@
+import { HelpLabel } from '../src/components/HelpTip';
 import { useEffect } from 'react';
 import { HeaderSaveButton } from '../src/components/HeaderSaveButton';
 import { FormScrollView } from '../src/components/FormScrollView';
@@ -27,8 +28,7 @@ export default function AdditionalExpenseFormScreen() {
         <FormScrollView contentContainerStyle={{ padding: 16 }}>
           <Text className="text-gray-700 font-semibold mb-2">Nome da despesa</Text>
           <TextInput className={inputClass} value={fields.name} onChangeText={v => setField('name', v)} placeholder="Ex.: Bordado terceirizado" editable={!saving} />
-          <Text className="text-gray-700 font-semibold mb-2">Valor por utilização (R$)</Text>
-          <Text className="text-gray-500 text-sm mb-2">Informe quanto custa uma utilização desse serviço ou gasto.</Text>
+          <HelpLabel title="Valor por utilização (R$)" message="Ex.: R$ 15 por bordado terceirizado." className="text-gray-700 font-semibold" />
           <TextInput className={inputClass} value={fields.cost} onChangeText={v => setField('cost', v)} placeholder="Ex.: 15,00" keyboardType="decimal-pad" editable={!saving} />
           <Text className="text-gray-700 font-semibold mb-2">Descrição (opcional)</Text>
           <TextInput className={inputClass + ' min-h-24'} multiline textAlignVertical="top" value={fields.description} onChangeText={v => setField('description', v)} placeholder="Ex.: Valor por peça" editable={!saving} />

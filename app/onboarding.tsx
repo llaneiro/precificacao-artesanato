@@ -14,17 +14,17 @@ const INTRO = [
   {
     icon: 'sparkles-outline' as Icon,
     title: 'Seu trabalho tem valor.',
-    description: 'Descubra quanto custa produzir suas peças e encontre um preço que valorize seu tempo e seu talento.',
+    description: 'Calcule preços que valorizam seu trabalho.',
     items: [
       { icon: 'layers-outline' as Icon, title: 'Organize seus materiais', description: 'Cadastre o que usa e o valor que pagou.' },
-      { icon: 'cube-outline' as Icon, title: 'Crie seus produtos', description: 'Informe os materiais e o tempo de produção de cada peça.' },
-      { icon: 'calculator-outline' as Icon, title: 'Precifique com segurança', description: 'Conheça seus custos e encontre um preço de venda sugerido.' },
+      { icon: 'cube-outline' as Icon, title: 'Crie seus produtos', description: 'Informe materiais e tempo de produção.' },
+      { icon: 'calculator-outline' as Icon, title: 'Precifique com segurança', description: 'Calcule ou simule um preço.' },
     ],
   },
   {
     icon: 'wallet-outline' as Icon,
     title: 'Conheça seus custos.',
-    description: 'O preço de uma peça vai além dos materiais. A Central financeira ajuda você a organizar tudo.',
+    description: 'Organize os custos na Central financeira.',
     items: [
       { icon: 'time-outline' as Icon, title: 'Mão de obra', description: 'Defina quanto deseja receber pelo seu trabalho.' },
       { icon: 'calendar-outline' as Icon, title: 'Despesas e taxas', description: 'Considere os gastos do negócio e as taxas de pagamento.' },
@@ -44,10 +44,10 @@ export default function OnboardingScreen() {
   const configuredFees = countConfiguredPayments(settings);
   const [error, setError] = useState('');
   const checklist = [
-    { title: 'Mão de obra', icon: 'time-outline' as Icon, route: '/labor-settings' as const, done: hourly !== null && !!settings?.productiveHours, summary: hourly === null ? 'Defina sua remuneração e horas produtivas.' : formatCurrency(Math.round(hourly)) + ' / hora' },
-    { title: 'Despesas fixas', icon: 'calendar-outline' as Icon, route: '/fixed-expenses' as const, done: fixed.expenses.length > 0 || settings?.noFixedExpenses === 1, summary: fixed.expenses.length ? 'Gastos mensais cadastrados' : settings?.noFixedExpenses === 1 ? 'Sem despesas fixas (confirmado)' : 'Cadastre os gastos mensais ou confirme que não possui.' },
-    { title: 'Formas de pagamento', icon: 'card-outline' as Icon, route: '/sales-fees' as const, done: configuredFees === 3, summary: configuredFees ? configuredFees + ' de 3 configuradas' : 'Escolha as formas que utiliza e suas taxas.' },
-    { title: 'Margem de lucro', icon: 'trending-up-outline' as Icon, route: '/profit-margin' as const, done: settings?.marginBps != null, summary: settings?.marginBps == null ? 'Escolha uma margem padrão para começar.' : (settings.marginBps / 100).toLocaleString('pt-BR') + '%' },
+    { title: 'Mão de obra', icon: 'time-outline' as Icon, route: '/labor-settings' as const, done: hourly !== null && !!settings?.productiveHours, summary: hourly === null ? 'Remuneração e horas' : formatCurrency(Math.round(hourly)) + ' / hora' },
+    { title: 'Despesas fixas', icon: 'calendar-outline' as Icon, route: '/fixed-expenses' as const, done: fixed.expenses.length > 0 || settings?.noFixedExpenses === 1, summary: fixed.expenses.length ? 'Gastos mensais cadastrados' : settings?.noFixedExpenses === 1 ? 'Sem despesas fixas (confirmado)' : 'Pendente' },
+    { title: 'Formas de pagamento', icon: 'card-outline' as Icon, route: '/sales-fees' as const, done: configuredFees === 3, summary: configuredFees ? configuredFees + ' de 3 configuradas' : 'Pendente' },
+    { title: 'Margem de lucro', icon: 'trending-up-outline' as Icon, route: '/profit-margin' as const, done: settings?.marginBps != null, summary: settings?.marginBps == null ? 'Opcional' : (settings.marginBps / 100).toLocaleString('pt-BR') + '%' },
   ];
   const intro = INTRO[step];
 
@@ -110,7 +110,7 @@ export default function OnboardingScreen() {
           </View>
         </> : <>
           <Text className="text-2xl font-bold text-gray-900 mb-2">Vamos preparar seu negócio?</Text>
-          <Text className="text-gray-600 leading-6 mb-4">Configure os itens abaixo quando puder. Você não precisa preencher tudo agora.</Text>
+          <Text className="text-gray-600 leading-6 mb-4">Configure agora ou depois.</Text>
           {(financial.loading || fixed.loading) ? <ActivityIndicator color="#4f46e5" /> : (financial.error || fixed.error) ?
             <View className="bg-gray-50 rounded-xl p-4 mb-3">
               <Text className="text-gray-600">Não foi possível consultar suas configurações.</Text>
@@ -129,7 +129,7 @@ export default function OnboardingScreen() {
               </Pressable>)}
             </View>}
           <View className="bg-indigo-50 rounded-xl p-4 mt-4">
-            <Text className="text-indigo-800 text-sm leading-5">Você também pode configurar despesas adicionais na Central financeira. Retome este guia a qualquer momento pela aba Mais.</Text>
+            <Text className="text-indigo-800 text-sm leading-5">Retome o guia na aba Mais.</Text>
           </View>
         </>}
       </ScrollView>

@@ -1,3 +1,4 @@
+import { OptionsMenu } from '../src/components/OptionsMenu';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,7 +17,6 @@ export default function ProductDetailsScreen() {
   const [error, setError] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [photoExpanded, setPhotoExpanded] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   useFocusEffect(useCallback(() => {
     let active = true;
     setLoading(true);
@@ -41,15 +41,11 @@ export default function ProductDetailsScreen() {
   const uri = getProductPhotoUri(product?.photoFilename ?? null);
   return (
     <SafeAreaView edges={['bottom', 'left', 'right']} className="flex-1 bg-gray-50">
-      <Stack.Screen options={{ headerRight: () => <Pressable accessibilityRole="button" accessibilityLabel="Opções do produto" disabled={loading || deleting || !product || !!error} onPress={() => setMenuOpen(true)} style={{ padding: 10 }}><Ionicons name="ellipsis-vertical" size={24} color="#fff" /></Pressable> }} />
-      <Modal visible={menuOpen} transparent animationType="fade" onRequestClose={() => setMenuOpen(false)}>
-        <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.25)', justifyContent: 'flex-start', alignItems: 'flex-end', paddingTop: 64, paddingRight: 12 }} onPress={() => setMenuOpen(false)}>
-          <SafeAreaView edges={['top']}><View className="bg-white rounded-xl shadow-lg p-2" style={{ minWidth: 190 }}>
-            <Pressable className="p-3" onPress={() => { setMenuOpen(false); if (product) router.push({ pathname: '/product-form', params: { id: String(product.id) } }); }}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}><Ionicons name="pencil-outline" size={20} color="#374151" /><Text className="text-gray-800 font-semibold">Editar produto</Text></View></Pressable>
-            <Pressable className="p-3" onPress={() => { setMenuOpen(false); confirmDelete(); }}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}><Ionicons name="trash-outline" size={20} color="#dc2626" /><Text className="text-red-600 font-semibold">Excluir produto</Text></View></Pressable>
-          </View></SafeAreaView>
-        </Pressable>
-      </Modal>
+      <Stack.Screen options={{ headerRight: () => <View style={{ marginRight: 16 }}><OptionsMenu label="Opções do produto" color="#fff"
+        disabled={loading || deleting || !product || !!error} actions={[
+          { label: 'Editar produto', icon: 'create-outline', onPress: () => { if (product) router.push({ pathname: '/product-form', params: { id: String(product.id) } }); } },
+          { label: 'Excluir produto', icon: 'trash-outline', destructive: true, onPress: confirmDelete },
+        ]} /></View> }} />
       {loading ? <ActivityIndicator className="mt-8" color="#4f46e5" /> : error || !product ?
         <Text className="p-4 text-gray-600">{error || 'Produto não encontrado.'}</Text> :
         <ScrollView contentContainerStyle={{ padding: 16 }}>
@@ -66,13 +62,17 @@ export default function ProductDetailsScreen() {
           <TouchableOpacity className="bg-indigo-600 rounded-xl p-4 mt-4 mb-5" onPress={() => router.push({ pathname: '/product-pricing', params: { id: String(product.id) } })}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Ionicons name="calculator-outline" size={20} color="#fff" /><Text className="text-white font-bold">Calcular preço de venda</Text></View>
           </TouchableOpacity>
+          <TouchableOpacity accessibilityRole="button" className="bg-white border border-gray-200 rounded-xl p-3 mb-5 flex-row items-center justify-center gap-2" onPress={() => router.push({ pathname: '/pricing-history', params: { productId: String(product.id), productName: product.name } })}>
+            <Ionicons name="time-outline" size={20} color="#4f46e5" />
+            <Text className="font-semibold text-indigo-700">Histórico de precificações</Text>
+          </TouchableOpacity>
           <View className="border-t border-gray-200 pt-4">
             <View className="flex-row items-center justify-between mb-3"><Text className="text-lg font-bold text-gray-800">Materiais utilizados</Text><Text className="text-gray-500 text-sm">{product.materials.length} {product.materials.length === 1 ? 'material' : 'materiais'}</Text></View>
             <View className="bg-white border border-gray-200 rounded-xl px-3">
               {!product.materials.length && <Text className="text-gray-500 py-4">Nenhum material cadastrado.</Text>}
               {product.materials.map((m, i) => <View key={m.materialId} className={'flex-row items-center gap-3 py-3 ' + (i ? 'border-t border-gray-100' : '')}>
                 <View className="bg-gray-100 rounded-lg p-2"><Ionicons name="layers-outline" size={22} color="#6b7280" /></View>
-                <View className="flex-1"><Text className="font-semibold text-gray-800">{m.name}</Text><Text className="text-gray-500 text-xs">Quantidade utilizada</Text></View>
+                <View className="flex-1"><Text className="font-semibold text-gray-800">{m.name}</Text></View>
                 <Text className="font-semibold text-gray-800">{m.quantityUsed.toLocaleString('pt-BR')} {m.unit}</Text>
               </View>)}
             </View>
@@ -82,7 +82,7 @@ export default function ProductDetailsScreen() {
             <View className="bg-white border border-gray-200 rounded-xl px-3">
               {product.additionalExpenses.map((e, i) => <View key={e.expenseId} className={'flex-row items-center gap-3 py-3 ' + (i ? 'border-t border-gray-100' : '')}>
                 <View className="bg-gray-100 rounded-lg p-2"><Ionicons name="receipt-outline" size={22} color="#6b7280" /></View>
-                <View className="flex-1"><Text className="font-semibold text-gray-800">{e.name}</Text><Text className="text-gray-500 text-xs">Quantidade utilizada</Text></View>
+                <View className="flex-1"><Text className="font-semibold text-gray-800">{e.name}</Text></View>
                 <Text className="font-semibold text-gray-800">{e.quantity.toLocaleString('pt-BR')} un</Text>
               </View>)}
             </View>

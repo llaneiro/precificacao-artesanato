@@ -1,3 +1,4 @@
+import { HelpLabel } from '../src/components/HelpTip';
 import { HeaderSaveButton } from '../src/components/HeaderSaveButton';
 import { FormScrollView } from '../src/components/FormScrollView';
 import { Alert, ActivityIndicator, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -84,8 +85,7 @@ export default function ProductFormScreen() {
             ))}
             {!form.materials.some(m => !form.selected.some(s => s.materialId === m.id)) && <Text className="p-3 text-gray-500">{form.materials.length ? 'Todos os materiais já foram adicionados.' : 'Cadastre materiais na aba Materiais antes de criar um produto.'}</Text>}
           </View>}
-          <Text className="text-lg font-bold text-gray-800 mt-2 mb-2">Despesas adicionais (opcional)</Text>
-          <Text className="text-gray-500 text-sm mb-3">Serviços ou outros custos específicos desta peça, cadastrados em Despesas.</Text>
+          <HelpLabel title="Despesas adicionais (opcional)" message="Inclua serviços e gastos desta peça cadastrados na Central financeira." className="text-lg font-bold text-gray-800" />
           {form.selectedAdditional.map(selection => {
             const expense = form.additionalExpenses.find(e => e.id === selection.expenseId);
             return (
@@ -112,11 +112,11 @@ export default function ProductFormScreen() {
             {!form.additionalExpenses.some(e => !form.selectedAdditional.some(s => s.expenseId === e.id)) && <Text className="p-3 text-gray-500">{form.additionalExpenses.length ? 'Todas as despesas já foram adicionadas.' : 'Cadastre despesas adicionais na aba Despesas.'}</Text>}
           </View>}
           <View className="bg-indigo-50 rounded-xl p-4 mb-4">
-            <Text className="text-gray-600">Custo estimado dos materiais</Text>
+            <HelpLabel title="Custo dos materiais" message="Mão de obra, despesas fixas, taxas e lucro entram na precificação." className="text-gray-600" />
             <Text className="text-xl text-indigo-700 font-bold">{form.totalCostCents === null ? '—' : (form.totalCostCents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</Text>
             <Text className="text-gray-600 mt-3">Despesas adicionais</Text>
             <Text className="text-indigo-700 font-bold">{form.additionalCostCents === null ? '—' : formatCurrency(form.additionalCostCents)}</Text>
-            <Text className="text-gray-500 text-sm mt-2">Não inclui mão de obra, despesas fixas, taxas de venda ou lucro.</Text>
+
           </View>
           {!!form.error && <Text className="text-red-600 mb-4" accessibilityRole="alert">{form.error}</Text>}
           <TouchableOpacity disabled={form.saving} onPress={() => void handleSave()} className={'rounded-xl p-4 ' + (form.saving ? 'bg-indigo-400' : 'bg-indigo-600')}>

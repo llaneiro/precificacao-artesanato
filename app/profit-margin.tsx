@@ -1,3 +1,4 @@
+import { HelpLabel } from '../src/components/HelpTip';
 import { HeaderSaveButton } from '../src/components/HeaderSaveButton';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -37,14 +38,13 @@ export default function ProfitMarginScreen() {
       {loading ? <ActivityIndicator className="mt-8" color="#4f46e5" /> : loadError ?
         <View className="p-4"><Text className="text-red-600">{loadError}</Text><TouchableOpacity onPress={() => void loadSettings()}><Text className="text-indigo-600 p-3">Tentar novamente</Text></TouchableOpacity></View> :
         <FormScrollView contentContainerStyle={{ padding: 16 }}>
-          <Text className="text-gray-600 mb-4">A margem é a parcela do preço de venda que representa lucro, após os custos. Ela é diferente da remuneração pelo seu trabalho.</Text>
-          <Text className="font-semibold text-gray-700 mb-2">Margem de lucro padrão (%)</Text>
+          <HelpLabel title="Margem de lucro padrão (%)" message="Percentual do valor líquido que sobra após os custos. Pode ser ajustado em cada cálculo." className="text-gray-700 font-semibold" />
           <TextInput className="bg-white border border-gray-300 rounded-xl p-3 text-gray-800" keyboardType="decimal-pad" placeholder="Ex.: 30" value={value} onChangeText={setValue} editable={!saving} />
-          <Text className="text-gray-500 text-sm mt-2 mb-4">Será usada como ponto de partida na precificação e poderá ser personalizada. Deixe em branco para não definir um padrão.</Text>
+          <Text className="text-gray-500 text-sm mt-2 mb-4">Opcional: deixe em branco se ainda não definiu.</Text>
           {valid && <View className="bg-indigo-50 rounded-xl p-4 mb-4">
             <Text className="font-semibold text-gray-700">Exemplo com custo de R$ 100,00</Text>
             <Text className="text-2xl font-bold text-indigo-700 mt-2">{formatCurrency(Math.ceil(10000 / (1 - margin / 100)))}</Text>
-            <Text className="text-gray-500 text-sm">Preço de venda ilustrativo, sem taxas sobre vendas.</Text>
+            <Text className="text-gray-500 text-sm">Preço base, sem taxa.</Text>
           </View>}
           {!!error && <Text className="text-red-600 mb-4">{error}</Text>}
           <TouchableOpacity disabled={saving} onPress={() => void save()} className="bg-indigo-600 rounded-xl p-4"><Text className="text-white font-bold text-center">{saving ? 'Salvando...' : 'Salvar margem'}</Text></TouchableOpacity>

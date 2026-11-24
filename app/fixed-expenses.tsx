@@ -1,41 +1,14 @@
+import { HelpLabel } from '../src/components/HelpTip';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { EmptyState } from '../src/components/EmptyState';
 import { ExpenseItem } from '../src/components/ExpenseItem';
-import { TipsCarousel, type Tip } from '../src/components/TipsCarousel';
 import { useExpenses } from '../src/hooks/useExpenses';
 import { usePricingSettings } from '../src/hooks/usePricingSettings';
 import { Expense } from '../src/types/expense';
 import { formatCurrency } from '../src/utils/currency';
-
-const EXPENSE_TIPS: readonly Tip[] = [
-  {
-    title: 'O que são despesas fixas?',
-    description: 'São os gastos recorrentes que ajudam a manter sua atividade artesanal funcionando, mesmo quando você não vende nenhuma peça.',
-    icon: 'bulb-outline',
-    iconColor: '#d97706',
-  },
-  {
-    title: 'Quais despesas incluir?',
-    description: 'Energia elétrica, água, internet, aluguel do espaço, mensalidades de aplicativos e serviços utilizados no seu negócio.',
-    icon: 'receipt-outline',
-    iconColor: '#4f46e5',
-  },
-  {
-    title: 'Você trabalha em casa?',
-    description: 'Não precisa incluir o valor inteiro das contas da sua casa. Estime apenas a parcela relacionada à sua atividade artesanal.',
-    icon: 'home-outline',
-    iconColor: '#0d9488',
-  },
-  {
-    title: 'O que não incluir aqui?',
-    description: 'Matérias-primas, embalagens individuais, mão de obra e taxas percentuais da maquininha serão consideradas em outras etapas da precificação.',
-    icon: 'cube-outline',
-    iconColor: '#4f46e5',
-  },
-];
 
 export default function FixedExpensesScreen() {
   const router = useRouter();
@@ -80,9 +53,9 @@ export default function FixedExpensesScreen() {
         contentContainerStyle={{ flexGrow: 1, padding: 16 }}
         ListHeaderComponent={(
           <View>
-            <TipsCarousel title="Dicas de despesas" tips={EXPENSE_TIPS} />
+
             <View className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 mb-4">
-              <Text className="text-gray-600 font-medium">Total mensal de despesas fixas</Text>
+              <HelpLabel title="Total mensal" message="Some gastos recorrentes como energia, água, internet e aluguel. Se trabalha em casa, inclua apenas a parte do negócio. Não inclua materiais nem mão de obra." className="text-gray-600 font-medium" />
               <Text className="text-2xl text-indigo-700 font-bold mt-1">
                 {error || loading || pricing.loading || pricing.error ? '—' : pending ? 'Não informado' : totalMonthlyCostCents === null ? 'Total acima do limite' : formatCurrency(totalMonthlyCostCents)}
               </Text>
@@ -90,7 +63,7 @@ export default function FixedExpensesScreen() {
             {!loading && !error && !pricing.loading && !pricing.error && !expenses.length && (
               <View className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
                 <Text className="font-semibold text-gray-800">{noExpenses ? 'Ausência de despesas confirmada' : 'Você possui despesas fixas?'}</Text>
-                <Text className="text-gray-600 text-sm mt-2">{noExpenses ? 'O rateio será de R$ 0,00. Você pode cadastrar gastos quando necessário.' : 'Uma lista vazia não significa que seus gastos são zero. Cadastre suas despesas ou confirme que não possui nenhuma.'}</Text>
+                <Text className="text-gray-600 text-sm mt-2">{noExpenses ? 'Sem despesas fixas.' : 'Cadastre seus gastos ou confirme que não possui.'}</Text>
                 <TouchableOpacity accessibilityRole="button" disabled={confirming || deleting} className="py-3" onPress={() => {
                   if (noExpenses) void confirmAbsence(false);
                   else Alert.alert('Confirmar ausência de despesas?', 'Confirme apenas se não existem gastos mensais relacionados à sua atividade artesanal.', [

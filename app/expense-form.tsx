@@ -1,3 +1,4 @@
+import { HelpLabel } from '../src/components/HelpTip';
 import { useEffect } from 'react';
 import { HeaderSaveButton } from '../src/components/HeaderSaveButton';
 import { FormScrollView } from '../src/components/FormScrollView';
@@ -27,8 +28,7 @@ export default function ExpenseFormScreen() {
         <FormScrollView contentContainerStyle={{ padding: 16 }}>
           <Text className="text-gray-700 font-semibold mb-2">Nome da despesa</Text>
           <TextInput className={inputClass} value={fields.name} onChangeText={v => setField('name', v)} placeholder="Ex.: Energia elétrica" editable={!saving} />
-          <Text className="text-gray-700 font-semibold mb-2">Valor mensal (R$)</Text>
-          <Text className="text-gray-500 text-sm mb-2">Informe o valor mensal referente à atividade artesanal.</Text>
+          <HelpLabel title="Valor mensal (R$)" message="Informe apenas a parte do gasto mensal referente ao negócio." className="text-gray-700 font-semibold" />
           <TextInput className={inputClass} value={fields.monthlyCost} onChangeText={v => setField('monthlyCost', v)} placeholder="Ex.: 150,00" keyboardType="decimal-pad" editable={!saving} />
           <Text className="text-gray-700 font-semibold mb-2">Descrição (opcional)</Text>
           <TextInput className={inputClass + ' min-h-24'} multiline textAlignVertical="top" value={fields.description} onChangeText={v => setField('description', v)} placeholder="Ex.: Parcela referente ao ateliê" editable={!saving} />

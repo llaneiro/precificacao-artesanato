@@ -7,26 +7,13 @@ export function HeaderAddButton({ label, onPress, disabled = false }: {
   disabled?: boolean;
 }) {
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ disabled }}
-      disabled={disabled}
-      onPress={onPress}
-      style={({ pressed }) => ({
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: 44,
-        paddingHorizontal: 8,
-        gap: 4,
-        opacity: disabled ? 0.5 : pressed ? 0.7 : 1,
-      })}
-    >
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, flexShrink: 0 }}>
-      <Ionicons name="add" size={22} color="#fff" />
-      <Text className="text-white font-semibold text-sm">Novo</Text>
-      </View>
-    </Pressable>
+    <View style={{ marginRight: 16 }}>
+      <Pressable accessibilityRole="button" accessibilityLabel={label}
+        accessibilityState={{ disabled }} disabled={disabled} onPress={onPress}
+        className={'min-h-11 flex-row items-center justify-center gap-1 px-1 rounded-lg ' + (disabled ? 'opacity-50' : 'active:opacity-70')}>
+        <Ionicons name="add" size={22} color="#fff" />
+        <Text className="text-white font-semibold text-sm" numberOfLines={1}>Novo</Text>
+      </Pressable>
+    </View>
   );
 }

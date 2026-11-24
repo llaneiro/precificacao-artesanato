@@ -1,19 +1,12 @@
+import { HelpLabel } from '../src/components/HelpTip';
 import { useEffect } from 'react';
 import { HeaderSaveButton } from '../src/components/HeaderSaveButton';
 import { FormScrollView } from '../src/components/FormScrollView';
 import { Alert, ActivityIndicator, Pressable, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
-import { TipsCarousel, type Tip } from '../src/components/TipsCarousel';
 import { usePricingForm } from '../src/hooks/usePricingForm';
 import { formatCurrency } from '../src/utils/currency';
-
-const TIPS: readonly Tip[] = [
-  { title: 'Seu tempo tem valor', description: 'A mão de obra remunera seu trabalho. Ela não é o lucro do negócio, que será calculado separadamente.', icon: 'time-outline' },
-  { title: 'Quanto você quer receber?', description: 'Se não souber quanto cobrar por hora, informe a remuneração mensal desejada e divida pelas horas produtivas do mês.', icon: 'wallet-outline' },
-  { title: 'Considere apenas horas produtivas', description: 'Estime quanto tempo realmente dedica à produção das peças. Reserve tempo para atendimento, compras, organização e descanso.', icon: 'calendar-outline' },
-  { title: 'Divida os custos mensais', description: 'As horas produtivas também ajudarão a distribuir as despesas fixas entre as peças, de acordo com o tempo de produção.', icon: 'bulb-outline', iconColor: '#d97706' },
-];
 
 export default function LaborSettingsScreen() {
   const router = useRouter();
@@ -29,9 +22,9 @@ export default function LaborSettingsScreen() {
         <View className="p-4"><Text className="text-red-600">{form.loadError}</Text><TouchableOpacity onPress={() => void form.loadSettings()} className="p-3"><Text className="text-indigo-600">Tentar novamente</Text></TouchableOpacity></View>
       ) : (
         <FormScrollView contentContainerStyle={{ padding: 16 }}>
-          <TipsCarousel title="Dicas de mão de obra" tips={TIPS} />
-          <Text className="text-gray-700 font-semibold mb-2">Como deseja definir sua remuneração?</Text>
-          {([{ mode: 'hourly', label: 'Já sei quanto cobrar por hora' }, { mode: 'monthly', label: 'Quero calcular pela renda mensal desejada' }] as const).map(option => (
+
+          <HelpLabel title="Remuneração" message="Escolha quanto quer receber por hora ou por mês. O lucro do negócio é separado." className="text-gray-700 font-semibold" />
+          {([{ mode: 'hourly', label: 'Por hora' }, { mode: 'monthly', label: 'Por mês' }] as const).map(option => (
             <Pressable key={option.mode} disabled={form.saving} accessibilityRole="radio" accessibilityState={{ checked: form.mode === option.mode }}
               onPress={() => form.setMode(option.mode)}
               className={'rounded-xl border p-3 mb-2 ' + (form.mode === option.mode ? 'bg-indigo-50 border-indigo-500' : 'bg-white border-gray-300')}>
@@ -40,13 +33,12 @@ export default function LaborSettingsScreen() {
           ))}
           <Text className="text-gray-700 font-semibold mt-3 mb-2">{form.mode === 'hourly' ? 'Valor da hora (R$)' : 'Remuneração mensal desejada (R$)'}</Text>
           <TextInput className={inputClass} value={form.mode === 'hourly' ? form.hourly : form.monthly} onChangeText={form.mode === 'hourly' ? form.setHourly : form.setMonthly} keyboardType="decimal-pad" placeholder={form.mode === 'hourly' ? 'Ex.: 20,00' : 'Ex.: 2400,00'} editable={!form.saving} />
-          <Text className="text-gray-700 font-semibold mb-2">Horas produtivas por mês</Text>
-          <Text className="text-gray-500 text-sm mb-2">Ex.: 6 horas de produção por dia × 20 dias = 120 horas.</Text>
+          <HelpLabel title="Horas produtivas por mês" message="Conte só o tempo de produção. Ex.: 6 h × 20 dias = 120 h. Essas horas distribuem as despesas fixas." className="text-gray-700 font-semibold" />
           <TextInput className={inputClass} value={form.hours} onChangeText={form.setHours} keyboardType="number-pad" placeholder="Ex.: 120" editable={!form.saving} />
           <View className="bg-indigo-50 rounded-xl p-4 mb-4">
             <Text className="text-gray-600">Remuneração por hora</Text>
             <Text className="text-2xl text-indigo-700 font-bold mt-1">{form.preview === null ? '—' : formatCurrency(Math.round(form.preview))}</Text>
-            <Text className="text-gray-500 text-sm mt-1">Valor referente ao seu trabalho, sem materiais, despesas ou lucro.</Text>
+
           </View>
           {!!form.error && <Text accessibilityRole="alert" className="text-red-600 mb-4">{form.error}</Text>}
           <TouchableOpacity disabled={form.saving} onPress={() => void handleSave()} className="bg-indigo-600 rounded-xl p-4">

@@ -58,7 +58,7 @@ export default function MaterialsScreen() {
             refreshing={loading}
             onRefresh={() => void loadMaterials()}
             contentContainerStyle={{ flexGrow: 1 }}
-            ListEmptyComponent={<EmptyState title="Nenhum material cadastrado" subtitle="Toque em + Novo no cabeçalho para começar." />}
+            ListEmptyComponent={<EmptyState title="Nenhum material cadastrado" subtitle="Cadastre seu primeiro material." />}
             renderItem={({ item }) => (
               <MaterialItem material={item} disabled={deleting}
                 onEdit={id => router.push({ pathname: '/material-form', params: { id: String(id) } })}

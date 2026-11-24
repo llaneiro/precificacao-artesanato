@@ -45,30 +45,34 @@ export function calculatePricing(product: ProductDetails, settings: PricingSetti
   const issues = [...costIssues];
   if (!validBps(margin)) issues.push({ code: 'margin', message: 'Defina a margem de lucro desejada.' });
 
-  function price(fee: number | null): number | null {
-    if (total === null || !validBps(fee) || !validBps(margin) || margin + fee >= 10000) return null;
-    // Divisão inteira arredondada para cima, sem erro de multiplicação decimal.
-    const denominator = BigInt(10000 - margin - fee);
-    const result = (BigInt(total) * BigInt(10000) + denominator - BigInt(1)) / denominator;
-    return cents(Number(result));
-  }
-  const base = price(0);
+  // A margem incide sobre o valor líquido que o negócio deseja receber.
+  const base = total === null || !validBps(margin) ? null :
+    cents(Number((BigInt(total) * BigInt(10000) + BigInt(9999 - margin)) / BigInt(10000 - margin)));
   if (!issues.length && base === null) issues.push({ code: 'range', message: 'O preço calculado excede o limite suportado. Revise custos e margem.' });
 
   const payments = PAYMENT_METHODS
     .filter(method => getPaymentChoice(settings, method.key) !== 'unused')
     .map(method => {
       const fee = settings?.[method.feeKey] ?? null;
-      const calculated = price(fee);
+      const calculated = grossPriceForNet(base, fee);
       const status = !validBps(fee) ? 'missingFee' :
         !validBps(margin) || total === null ? 'incomplete' :
-        margin + fee >= 10000 ? 'incompatible' :
         calculated === null ? 'outOfRange' : 'ready';
       return { key: method.key, name: method.name, fee, price: calculated, status } as const;
     });
 
   return { materials, additional, labor, fixed, knownTotal, total, costIssues, issues, base,
     profit: base === null || total === null ? null : base - total, payments };
+}
+
+// Menor preço bruto que, após a taxa arredondada ao centavo,
+// entrega exatamente o líquido solicitado. Taxa percentual entre 0 e 99,99%.
+export function grossPriceForNet(net: number | null, fee: number | null): number | null {
+  if (net === null || cents(net) === null || !validBps(fee)) return null;
+  const denominator = BigInt(10000 - fee);
+  const numerator = BigInt(net) * BigInt(10000) - BigInt(4999);
+  return cents(Number(numerator <= BigInt(0) ? BigInt(0) :
+    (numerator + denominator - BigInt(1)) / denominator));
 }
 
 // Análise inversa: o preço é definido pelo usuário, não pela margem desejada.
@@ -78,11 +82,7 @@ export function calculateManualPricing(total: number | null, salePrice: number |
     return { minimumPrice: null, result: null };
   }
 
-  const denominator = BigInt(10000 - fee);
-  // Menor preço cujo líquido, após arredondar a taxa em centavos, cobre o custo.
-  const numerator = BigInt(total) * BigInt(10000) - BigInt(4999);
-  const minimumPrice = cents(Number(numerator <= BigInt(0) ? BigInt(0) :
-    (numerator + denominator - BigInt(1)) / denominator));
+  const minimumPrice = grossPriceForNet(total, fee);
 
   if (salePrice === null || cents(salePrice) === null || salePrice <= 0) {
     return { minimumPrice, result: null };
@@ -91,7 +91,7 @@ export function calculateManualPricing(total: number | null, salePrice: number |
   const feeCents = Number((BigInt(salePrice) * BigInt(fee) + BigInt(5000)) / BigInt(10000));
   const netCents = salePrice - feeCents;
   const profitCents = netCents - total;
-  const marginPercent = profitCents / salePrice * 100;
+  const marginPercent = netCents > 0 ? profitCents / netCents * 100 : null;
 
   return { minimumPrice, result: {
     salePrice, feeCents, netCents, profitCents, marginPercent,

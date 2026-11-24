@@ -1,3 +1,4 @@
+import { HelpLabel } from './HelpTip';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useProductPricing } from '../hooks/useProductPricing';
@@ -30,7 +31,7 @@ export function ManualPricingPanel({ form, onConfigurePayments }: {
   return <>
     <View className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
       <Text className="font-semibold text-gray-800 text-base mb-2">Por quanto deseja vender?</Text>
-      <Text className="text-gray-500 text-sm mb-3">Informe um preço de mercado ou o valor que pretende cobrar pela peça.</Text>
+
       <View className="flex-row items-center rounded-xl border border-gray-300 px-3 bg-white">
         <Text className="text-gray-500 font-semibold mr-2">R$</Text>
         <TextInput
@@ -47,8 +48,7 @@ export function ManualPricingPanel({ form, onConfigurePayments }: {
     </View>
 
     <View className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
-      <Text className="font-semibold text-gray-800 text-base mb-2">Forma de pagamento</Text>
-      <Text className="text-gray-500 text-sm mb-3">Escolha como o cliente vai pagar para calcular o valor líquido.</Text>
+      <HelpLabel title="Forma de pagamento" message="Escolha como o cliente vai pagar. Use Venda sem taxa apenas quando não houver cobrança, como no dinheiro." className="font-semibold text-gray-800 text-base" />
       {options.map(option => {
         const selected = form.selectedPayment === option.key;
         return <Pressable key={option.key} accessibilityRole="radio" accessibilityLabel={option.name} accessibilityState={{ checked: selected }}
@@ -57,14 +57,14 @@ export function ManualPricingPanel({ form, onConfigurePayments }: {
           <Ionicons name={selected ? 'radio-button-on' : 'radio-button-off'} size={21} color={selected ? '#4f46e5' : '#9ca3af'} />
           <View className="flex-1">
             <Text className={selected ? 'font-semibold text-indigo-700' : 'font-medium text-gray-800'}>{option.name}</Text>
-            <Text className="text-gray-500 text-xs mt-1">{option.key === 'noFee' ? 'Ex.: dinheiro, sem cobrança sobre a venda.' : option.fee === null ? 'Não configurado' : option.fee === 0 ? 'Sem cobrança de taxa' : 'Taxa: ' + (option.fee / 100).toLocaleString('pt-BR') + '%'}</Text>
+            <Text className="text-gray-500 text-xs mt-1">{option.key === 'noFee' ? 'Ex.: dinheiro' : option.fee === null ? 'Não configurado' : option.fee === 0 ? 'Sem cobrança de taxa' : 'Taxa: ' + (option.fee / 100).toLocaleString('pt-BR') + '%'}</Text>
           </View>
         </Pressable>;
       })}
       {form.selectedPayment === null && <Text className="text-gray-500 text-sm mt-2">Selecione uma forma de pagamento.</Text>}
-      {form.selectedPayment === 'noFee' && <Text className="text-gray-600 text-sm mt-2">Use esta opção apenas quando não houver nenhuma taxa sobre a venda.</Text>}
+
       {form.selectedPayment !== null && form.manualFee === null && <View className="bg-amber-50 rounded-lg p-3 mt-2">
-        <Text className="text-amber-900 text-sm">Não é possível calcular o lucro sem conhecer a taxa desta forma de pagamento.</Text>
+        <Text className="text-amber-900 text-sm">Configure a taxa para calcular o lucro.</Text>
         <Pressable accessibilityRole="button" onPress={onConfigurePayments} className="py-2">
           <Text className="text-indigo-700 font-semibold">Configurar pagamento</Text>
         </Pressable>
@@ -80,11 +80,12 @@ export function ManualPricingPanel({ form, onConfigurePayments }: {
         </Text>
       </View>
       <Text className={'text-3xl font-bold mt-2 ' + (outcome === 'loss' ? 'text-red-700' : outcome === 'profit' ? 'text-green-700' : 'text-gray-800')}>{formatCurrency(Math.abs(result.profitCents))}</Text>
-      <Text className="text-gray-700 mt-2">{outcome === 'loss' ? 'O valor líquido não cobre todos os custos cadastrados.' : outcome === 'profit' ? 'O valor líquido cobre os custos e deixa lucro para o negócio.' : 'O valor líquido cobre os custos, sem lucro nem prejuízo.'}</Text>
+      {outcome === 'loss' && <Text className="text-red-700 text-sm mt-2">O preço não cobre os custos.</Text>}
       <View className="border-t border-gray-200 mt-4 pt-3">
-        <Text className="text-gray-600 text-sm">Margem real sobre o preço de venda</Text>
-        <Text className={'font-bold text-2xl mt-1 ' + (outcome === 'loss' ? 'text-red-700' : outcome === 'profit' ? 'text-green-700' : 'text-gray-800')}>{formatMargin(result.marginPercent)}</Text>
-        {form.margin !== null && <Text className="text-gray-600 text-sm mt-2">Margem desejada: {(form.margin / 100).toLocaleString('pt-BR')}%{result.marginPercent < form.margin / 100 ? ' · Abaixo da meta' : ' · Meta atingida'}</Text>}
+        <HelpLabel title="Margem sobre o líquido" message="Lucro dividido pelo valor recebido após a taxa." className="text-gray-600 text-sm" />
+        <Text className={'font-bold text-2xl mt-1 ' + (outcome === 'loss' ? 'text-red-700' : outcome === 'profit' ? 'text-green-700' : 'text-gray-800')}>{result.marginPercent === null ? '—' : formatMargin(result.marginPercent)}</Text>
+        {result.marginPercent === null && <Text className="text-gray-600 text-sm mt-2">Margem indefinida: o valor líquido é zero.</Text>}
+        {form.margin !== null && result.marginPercent !== null && <Text className="text-gray-600 text-sm mt-2">Margem desejada: {(form.margin / 100).toLocaleString('pt-BR')}%{result.marginPercent < form.margin / 100 ? ' · Abaixo da meta' : ' · Meta atingida'}</Text>}
       </View>
     </View> : <View className="bg-indigo-50 rounded-xl p-4 mb-4">
       <Text className="font-semibold text-gray-800">Resultado da venda</Text>
@@ -99,9 +100,9 @@ export function ManualPricingPanel({ form, onConfigurePayments }: {
       <Detail label="Valor líquido recebido" value={result ? formatCurrency(result.netCents) : '—'} />
       <Detail label="Custo total" value={form.result?.total == null ? '—' : formatCurrency(form.result.total)} />
       <View className="border-t border-gray-100 mt-2 pt-2">
-        <Text className="text-gray-600 text-sm">Preço mínimo para não ter prejuízo</Text>
+        <HelpLabel title="Preço mínimo" message="Menor preço que cobre os custos e a taxa, sem lucro." className="text-gray-600 text-sm" />
         <Text className="text-xl text-indigo-700 font-bold mt-1">{form.manual.minimumPrice === null ? '—' : formatCurrency(form.manual.minimumPrice)}</Text>
-        <Text className="text-gray-500 text-xs mt-1">Considera os custos cadastrados e a taxa selecionada, sem lucro adicional.</Text>
+
       </View>
     </View>
   </>;

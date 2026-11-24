@@ -6,6 +6,7 @@ import { EmptyState } from '../src/components/EmptyState';
 import { ExpenseItem } from '../src/components/ExpenseItem';
 import { TipsCarousel, type Tip } from '../src/components/TipsCarousel';
 import { useExpenses } from '../src/hooks/useExpenses';
+import { usePricingSettings } from '../src/hooks/usePricingSettings';
 import { Expense } from '../src/types/expense';
 import { formatCurrency } from '../src/utils/currency';
 
@@ -40,6 +41,16 @@ export default function FixedExpensesScreen() {
   const router = useRouter();
   const { expenses, loading, error, totalMonthlyCostCents, loadExpenses, removeExpense } = useExpenses();
   const [deleting, setDeleting] = useState(false);
+  const pricing = usePricingSettings();
+  const [confirming, setConfirming] = useState(false);
+  const noExpenses = pricing.settings?.noFixedExpenses === 1;
+  const pending = !expenses.length && !noExpenses;
+  async function confirmAbsence(confirmed: boolean) {
+    setConfirming(true);
+    try { await pricing.saveNoFixedExpenses(confirmed); }
+    catch (e) { Alert.alert('Não foi possível salvar', e instanceof Error ? e.message : 'Tente novamente.'); }
+    finally { setConfirming(false); }
+  }
 
   function confirmDelete(expense: Expense) {
     Alert.alert('Excluir despesa', 'Deseja excluir "' + expense.name + '"?', [
@@ -73,9 +84,25 @@ export default function FixedExpensesScreen() {
             <View className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 mb-4">
               <Text className="text-gray-600 font-medium">Total mensal de despesas fixas</Text>
               <Text className="text-2xl text-indigo-700 font-bold mt-1">
-                {error || (loading && !expenses.length) ? '—' : totalMonthlyCostCents === null ? 'Total acima do limite' : formatCurrency(totalMonthlyCostCents)}
+                {error || loading || pricing.loading || pricing.error ? '—' : pending ? 'Não informado' : totalMonthlyCostCents === null ? 'Total acima do limite' : formatCurrency(totalMonthlyCostCents)}
               </Text>
             </View>
+            {!loading && !error && !pricing.loading && !pricing.error && !expenses.length && (
+              <View className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
+                <Text className="font-semibold text-gray-800">{noExpenses ? 'Ausência de despesas confirmada' : 'Você possui despesas fixas?'}</Text>
+                <Text className="text-gray-600 text-sm mt-2">{noExpenses ? 'O rateio será de R$ 0,00. Você pode cadastrar gastos quando necessário.' : 'Uma lista vazia não significa que seus gastos são zero. Cadastre suas despesas ou confirme que não possui nenhuma.'}</Text>
+                <TouchableOpacity accessibilityRole="button" disabled={confirming || deleting} className="py-3" onPress={() => {
+                  if (noExpenses) void confirmAbsence(false);
+                  else Alert.alert('Confirmar ausência de despesas?', 'Confirme apenas se não existem gastos mensais relacionados à sua atividade artesanal.', [
+                    { text: 'Cancelar', style: 'cancel' },
+                    { text: 'Confirmar', onPress: () => void confirmAbsence(true) },
+                  ]);
+                }}>
+                  <Text className="text-indigo-700 font-semibold">{confirming ? 'Salvando...' : noExpenses ? 'Desfazer confirmação' : 'Não tenho despesas fixas'}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            {pricing.error && <TouchableOpacity onPress={() => void pricing.loadSettings()} className="p-3 mb-3"><Text className="text-red-600">Não foi possível verificar a configuração. Tentar novamente</Text></TouchableOpacity>}
             <TouchableOpacity disabled={deleting} onPress={() => router.push('/expense-form')} className="bg-indigo-600 rounded-xl p-4 mb-4">
               <Text className="text-white font-bold text-center">+ Nova despesa</Text>
             </TouchableOpacity>

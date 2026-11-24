@@ -1,4 +1,4 @@
-import { LaborMode, LaborSettings, SalesFees } from '../types/pricingSettings';
+import { LaborMode, LaborSettings, SalesFees, PaymentDrafts, PaymentDraft, PAYMENT_METHODS } from '../types/pricingSettings';
 import { parseCostCents } from './currency';
 
 export function parseFee(value: string): number | null {
@@ -19,6 +19,26 @@ export function parseLabor(mode: LaborMode, hours: string, amount: string): Labo
   return { laborMode: mode, productiveHours, hourlyCostCents: mode === 'hourly' ? cents : null, monthlyIncomeCents: mode === 'monthly' ? cents : null };
 }
 
-export function parseFees(debit: string, credit: string, pix: string): SalesFees {
-  return { debitBps: parseFee(debit), creditBps: parseFee(credit), pixBps: parseFee(pix) };
+function parsePayment(draft: PaymentDraft, name: string): { fee: number | null; unused: 0 | 1 } {
+  switch (draft.choice) {
+    case 'pending': return { fee: null, unused: 0 };
+    case 'unused': return { fee: null, unused: 1 };
+    case 'free': return { fee: 0, unused: 0 };
+    case 'charged': {
+      let fee: number | null;
+      try { fee = parseFee(draft.fee); }
+      catch (error) { throw new Error(name + ': ' + (error instanceof Error ? error.message : 'Taxa inválida.')); }
+      if (fee === null || fee <= 0) throw new Error(name + ': informe uma taxa maior que zero ou selecione "Não pago taxa".');
+      return { fee, unused: 0 };
+    }
+    default: throw new Error(name + ': escolha uma opção válida.');
+  }
+}
+
+export function parseFees(drafts: PaymentDrafts): SalesFees {
+  const pix = parsePayment(drafts.pix, PAYMENT_METHODS[0].name);
+  const debit = parsePayment(drafts.debit, PAYMENT_METHODS[1].name);
+  const credit = parsePayment(drafts.credit, PAYMENT_METHODS[2].name);
+  return { pixBps: pix.fee, debitBps: debit.fee, creditBps: credit.fee,
+    pixUnused: pix.unused, debitUnused: debit.unused, creditUnused: credit.unused };
 }

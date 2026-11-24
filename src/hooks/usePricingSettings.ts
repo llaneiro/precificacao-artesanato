@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { useAuthContext } from '../contexts/AuthContext';
 import * as Repository from '../database/pricingSettingsRepository';
-import { LaborMode, PricingSettings } from '../types/pricingSettings';
+import { LaborMode, PricingSettings, PaymentDrafts } from '../types/pricingSettings';
 import { parseFees, parseLabor } from '../utils/pricingInputs';
 
 export function usePricingSettings(loadOnFocus = true) {
@@ -33,9 +33,9 @@ export function usePricingSettings(loadOnFocus = true) {
     await Repository.saveLaborSettings(userId, parseLabor(mode, hours, amount));
   }, [userId]);
 
-  const saveFees = useCallback(async (debit: string, credit: string, pix: string) => {
+  const saveFees = useCallback(async (drafts: PaymentDrafts) => {
     if (!userId) throw new Error('Faça login para configurar as taxas.');
-    await Repository.saveSalesFees(userId, parseFees(debit, credit, pix));
+    await Repository.saveSalesFees(userId, parseFees(drafts));
   }, [userId]);
 
   const saveMargin = useCallback(async (value: string) => {
@@ -47,5 +47,11 @@ export function usePricingSettings(loadOnFocus = true) {
     await Repository.saveProfitMargin(userId, bps);
   }, [userId]);
 
-  return { settings, loading, error, loadSettings, saveLabor, saveFees, saveMargin };
+  const saveNoFixedExpenses = useCallback(async (confirmed: boolean) => {
+    if (!userId) throw new Error('Faça login para configurar as despesas.');
+    await Repository.saveNoFixedExpenses(userId, confirmed);
+    await loadSettings();
+  }, [userId, loadSettings]);
+
+  return { settings, loading, error, loadSettings, saveLabor, saveFees, saveMargin, saveNoFixedExpenses };
 }

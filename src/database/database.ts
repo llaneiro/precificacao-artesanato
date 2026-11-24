@@ -163,4 +163,32 @@ async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
     await db.execAsync("ALTER TABLE pricing_settings ADD COLUMN marginBps INTEGER CHECK(marginBps IS NULL OR (typeof(marginBps) = 'integer' AND marginBps BETWEEN 0 AND 9999))");
   }
 
+  // Mantém os percentuais existentes. A ausência de uso é uma decisão distinta.
+  // O antigo desconto Pix, caso exista no banco local, não é mais usado.
+  for (const column of ['pixUnused', 'debitUnused', 'creditUnused'] as const) {
+    if (!pricingColumns.some(existing => existing.name === column)) {
+      await db.execAsync(`ALTER TABLE pricing_settings ADD COLUMN ${column} INTEGER NOT NULL DEFAULT 0 CHECK(${column} IN (0, 1))`);
+    }
+  }
+
+  // Uma lista vazia só equivale a zero após confirmação explícita.
+  if (!pricingColumns.some(column => column.name === 'noFixedExpenses')) {
+    await db.execAsync('ALTER TABLE pricing_settings ADD COLUMN noFixedExpenses INTEGER NOT NULL DEFAULT 0 CHECK(noFixedExpenses IN (0, 1))');
+  }
+  await db.execAsync(`
+    CREATE TRIGGER IF NOT EXISTS reset_no_fixed_expenses
+    AFTER INSERT ON fixed_expenses
+    BEGIN
+      UPDATE pricing_settings SET noFixedExpenses = 0 WHERE userId = NEW.userId;
+    END;
+  `);
+
+  // Primeiro acesso por conta, sem modificar as configurações financeiras.
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS onboarding_state (
+      userId TEXT PRIMARY KEY NOT NULL,
+      completedAt TEXT NOT NULL
+    );
+  `);
+
 }

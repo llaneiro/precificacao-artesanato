@@ -1,18 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useMaterials } from './useMaterials';
 import { CreateMaterialInput, isMaterialUnit } from '../types/material';
+import { parseCostCents, centsToInput } from '../utils/currency';
+export { parseCostCents } from '../utils/currency';
 
 const EMPTY_FIELDS = { name: '', cost: '', quantity: '', unit: '' };
 type MaterialFields = typeof EMPTY_FIELDS;
-
-// Converte reais em centavos sem multiplicar números decimais.
-export function parseCostCents(value: string): number {
-  const match = /^(\d+)(?:[,.](\d{1,2}))?$/.exec(value.trim());
-  if (!match) throw new Error('Informe um valor em reais com até duas casas decimais.');
-  const cents = Number(match[1] + (match[2] ?? '').padEnd(2, '0'));
-  if (!Number.isSafeInteger(cents)) throw new Error('O valor informado é muito alto.');
-  return cents;
-}
 
 function parseQuantity(value: string): number {
   if (!/^\d+(?:[,.]\d+)?$/.test(value.trim())) {
@@ -33,10 +26,6 @@ function toInput(fields: MaterialFields): CreateMaterialInput {
     quantity: parseQuantity(fields.quantity),
     unit: fields.unit,
   };
-}
-
-function centsToInput(cents: number): string {
-  return Math.floor(cents / 100) + ',' + String(cents % 100).padStart(2, '0');
 }
 
 // Gerencia o formulário e reutiliza o hook de materiais para persistir os dados.

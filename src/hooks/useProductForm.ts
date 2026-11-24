@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useMaterials } from './useMaterials';
+import { useAdditionalExpenses } from './useAdditionalExpenses';
 import { useProducts } from './useProducts';
 import { getMaterialCostCents, ProductMaterial } from '../types/product';
 import { deleteProductPhoto, getProductPhotoUri, pickProductPhoto, saveProductPhoto } from '../services/productPhoto';
@@ -24,8 +25,10 @@ function parseDuration(hours: string, minutes: string): number {
 
 export function useProductForm(id?: string) {
   const { materials, loading: materialsLoading, error: materialsError, loadMaterials } = useMaterials();
+  const { expenses: additionalExpenses, loading: additionalLoading, error: additionalError, loadAdditionalExpenses } = useAdditionalExpenses();
   const { getProductById, addProduct, editProduct } = useProducts(false);
   const [fields, setFields] = useState<Fields>(EMPTY_FIELDS);
+  const [selectedAdditional, setSelectedAdditional] = useState<{ expenseId: number; quantity: string }[]>([]);
   const [selected, setSelected] = useState<SelectedMaterial[]>([]);
   const [photoFilename, setPhotoFilename] = useState<string | null>(null);
   const [newPhoto, setNewPhoto] = useState<string | null>(null);
@@ -40,6 +43,7 @@ export function useProductForm(id?: string) {
     let active = true;
     setFields(EMPTY_FIELDS);
     setSelected([]);
+    setSelectedAdditional([]);
     setPhotoFilename(null);
     setNewPhoto(null);
     setLoadError(null);
@@ -63,6 +67,7 @@ export function useProductForm(id?: string) {
           minutes: String(product.productionMinutes % 60),
         });
         setSelected(product.materials.map(m => ({ materialId: m.materialId, quantity: String(m.quantityUsed).replace('.', ',') })));
+        setSelectedAdditional(product.additionalExpenses.map(e => ({ expenseId: e.expenseId, quantity: String(e.quantity) })));
         setPhotoFilename(product.photoFilename);
       } catch (error) {
         if (active) setLoadError(error instanceof Error ? error.message : 'Não foi possível carregar o produto.');
@@ -86,6 +91,34 @@ export function useProductForm(id?: string) {
     setError(null);
   };
   const removeMaterial = (materialId: number) => setSelected(old => old.filter(m => m.materialId !== materialId));
+
+  function addAdditional(expenseId: number) {
+    setSelectedAdditional(old => old.some(e => e.expenseId === expenseId) ? old : [...old, { expenseId, quantity: '1' }]);
+    setError(null);
+  }
+  function removeAdditional(expenseId: number) {
+    setSelectedAdditional(old => old.filter(e => e.expenseId !== expenseId));
+    setError(null);
+  }
+  function changeAdditionalQuantity(expenseId: number, quantity: string) {
+    setSelectedAdditional(old => old.map(e => e.expenseId === expenseId ? { ...e, quantity } : e));
+    setError(null);
+  }
+  function resolveAdditional() {
+    let total = 0;
+    const items = selectedAdditional.map(selection => {
+      const expense = additionalExpenses.find(e => e.id === selection.expenseId);
+      const quantity = Number(selection.quantity);
+      if (!expense) throw new Error('Uma despesa adicional não está disponível.');
+      if (!/^\d+$/.test(selection.quantity.trim()) || !Number.isSafeInteger(quantity) || quantity <= 0) throw new Error('Informe uma quantidade inteira maior que zero para cada despesa adicional.');
+      total += expense.costCents * quantity;
+      if (!Number.isSafeInteger(total)) throw new Error('O custo das despesas adicionais é muito alto.');
+      return { expenseId: expense.id, quantity };
+    });
+    return { items, total };
+  }
+  let additionalCostCents: number | null = null;
+  try { additionalCostCents = resolveAdditional().total; } catch {}
 
   async function choosePhoto() {
     try {
@@ -117,7 +150,7 @@ export function useProductForm(id?: string) {
   } catch { /* Prévia indisponível enquanto houver dados incompletos. */ }
 
   async function save(): Promise<boolean> {
-    if (busy.current || loading || loadError || materialsLoading || materialsError) return false;
+    if (busy.current || loading || loadError || materialsLoading || materialsError || additionalLoading || additionalError) return false;
     busy.current = true;
     setSaving(true);
     setError(null);
@@ -129,10 +162,12 @@ export function useProductForm(id?: string) {
       const linked = resolvedMaterials();
       if (!linked.length) throw new Error('Adicione pelo menos um material.');
       if (!Number.isSafeInteger(getMaterialCostCents(linked))) throw new Error('O custo informado é muito alto.');
+      const extra = resolveAdditional();
       if (newPhoto) copied = saveProductPhoto(newPhoto);
       const input = {
         name, description: fields.description.trim() || null, productionMinutes,
         photoFilename: copied ?? photoFilename,
+        additionalExpenses: extra.items,
         materials: linked.map(({ materialId, quantityUsed }) => ({ materialId, quantityUsed })),
       };
       if (isEditing) await editProduct({ ...input, id: Number(id) });
@@ -151,6 +186,7 @@ export function useProductForm(id?: string) {
   return {
     fields, setField, selected, addMaterial, changeQuantity, removeMaterial,
     materials, materialsLoading, materialsError, loadMaterials,
+    additionalExpenses, additionalLoading, additionalError, loadAdditionalExpenses, selectedAdditional, addAdditional, removeAdditional, changeAdditionalQuantity, additionalCostCents,
     photoUri: newPhoto ?? getProductPhotoUri(photoFilename), choosePhoto, removePhoto,
     isEditing, loading, loadError, saving, error, save, totalCostCents,
   };

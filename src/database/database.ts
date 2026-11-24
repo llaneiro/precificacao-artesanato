@@ -99,4 +99,63 @@ async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
       SELECT RAISE(ABORT, 'MATERIAL_IN_USE');
     END;
   `);
+
+  // Despesas fixas mensais; valores em centavos, separados por usuário.
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS fixed_expenses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId TEXT NOT NULL,
+      name TEXT NOT NULL CHECK(length(trim(name)) > 0),
+      monthlyCostCents INTEGER NOT NULL CHECK(typeof(monthlyCostCents) = 'integer' AND monthlyCostCents > 0 AND monthlyCostCents <= 9007199254740991),
+      description TEXT,
+      createdAt TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_fixed_expenses_userId ON fixed_expenses(userId);
+  `);
+
+  // Custos por peça e configurações independentes de mão de obra e taxas.
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS additional_expenses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId TEXT NOT NULL,
+      name TEXT NOT NULL CHECK(length(trim(name)) > 0),
+      costCents INTEGER NOT NULL CHECK(typeof(costCents) = 'integer' AND costCents > 0 AND costCents <= 9007199254740991),
+      description TEXT,
+      createdAt TEXT NOT NULL,
+      UNIQUE(id, userId)
+    );
+    CREATE INDEX IF NOT EXISTS idx_additional_expenses_userId ON additional_expenses(userId);
+    CREATE TABLE IF NOT EXISTS product_additional_expenses (
+      productId INTEGER NOT NULL,
+      expenseId INTEGER NOT NULL,
+      userId TEXT NOT NULL,
+      quantity INTEGER NOT NULL CHECK(typeof(quantity) = 'integer' AND quantity > 0),
+      PRIMARY KEY(productId, expenseId),
+      FOREIGN KEY(productId, userId) REFERENCES products(id, userId) ON DELETE CASCADE,
+      FOREIGN KEY(expenseId, userId) REFERENCES additional_expenses(id, userId) ON DELETE RESTRICT
+    );
+    CREATE INDEX IF NOT EXISTS idx_product_additional_expense ON product_additional_expenses(expenseId, userId);
+    CREATE TRIGGER IF NOT EXISTS prevent_linked_additional_expense_delete
+    BEFORE DELETE ON additional_expenses
+    WHEN EXISTS (SELECT 1 FROM product_additional_expenses WHERE expenseId = OLD.id AND userId = OLD.userId)
+    BEGIN
+      SELECT RAISE(ABORT, 'ADDITIONAL_EXPENSE_IN_USE');
+    END;
+
+    CREATE TABLE IF NOT EXISTS pricing_settings (
+      userId TEXT PRIMARY KEY NOT NULL,
+      laborMode TEXT CHECK(laborMode IN ('hourly', 'monthly')),
+      productiveHours INTEGER CHECK(productiveHours IS NULL OR (typeof(productiveHours) = 'integer' AND productiveHours BETWEEN 1 AND 744)),
+      hourlyCostCents INTEGER CHECK(hourlyCostCents IS NULL OR (typeof(hourlyCostCents) = 'integer' AND hourlyCostCents > 0 AND hourlyCostCents <= 9007199254740991)),
+      monthlyIncomeCents INTEGER CHECK(monthlyIncomeCents IS NULL OR (typeof(monthlyIncomeCents) = 'integer' AND monthlyIncomeCents > 0 AND monthlyIncomeCents <= 9007199254740991)),
+      debitBps INTEGER CHECK(debitBps IS NULL OR (typeof(debitBps) = 'integer' AND debitBps BETWEEN 0 AND 9999)),
+      creditBps INTEGER CHECK(creditBps IS NULL OR (typeof(creditBps) = 'integer' AND creditBps BETWEEN 0 AND 9999)),
+      pixBps INTEGER CHECK(pixBps IS NULL OR (typeof(pixBps) = 'integer' AND pixBps BETWEEN 0 AND 9999)),
+      CHECK (
+        (laborMode IS NULL AND productiveHours IS NULL AND hourlyCostCents IS NULL AND monthlyIncomeCents IS NULL)
+        OR (laborMode = 'hourly' AND productiveHours IS NOT NULL AND hourlyCostCents IS NOT NULL AND monthlyIncomeCents IS NULL)
+        OR (laborMode = 'monthly' AND productiveHours IS NOT NULL AND hourlyCostCents IS NULL AND monthlyIncomeCents IS NOT NULL)
+      )
+    );
+  `);
 }

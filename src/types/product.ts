@@ -20,11 +20,23 @@ export interface ProductMaterial extends ProductMaterialInput {
   referenceQuantity: number;
 }
 
+export interface ProductAdditionalExpenseInput {
+  expenseId: number;
+  quantity: number;
+}
+
+export interface ProductAdditionalExpense extends ProductAdditionalExpenseInput {
+  name: string;
+  costCents: number;
+}
+
 export interface ProductDetails extends Product {
+  additionalExpenses: ProductAdditionalExpense[];
   materials: ProductMaterial[];
 }
 
 export interface ProductSummary extends Product {
+  additionalCostCents: number;
   materialCount: number;
   materialCostCents: number;
 }
@@ -35,6 +47,7 @@ export interface CreateProductInput {
   productionMinutes: number;
   photoFilename: string | null;
   materials: ProductMaterialInput[];
+  additionalExpenses: ProductAdditionalExpenseInput[];
 }
 
 export interface UpdateProductInput extends CreateProductInput {

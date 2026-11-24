@@ -1,6 +1,7 @@
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { ProductSummary } from '../types/product';
 import { getProductPhotoUri } from '../services/productPhoto';
+import { formatCurrency } from '../utils/currency';
 
 export function ProductItem({ product, onEdit, onDelete, disabled }: {
   product: ProductSummary;
@@ -20,6 +21,7 @@ export function ProductItem({ product, onEdit, onDelete, disabled }: {
           {!!product.description && <Text className="text-gray-500 mt-1" numberOfLines={2}>{product.description}</Text>}
           <Text className="text-gray-600 mt-1">{hours}h {minutes}min · {product.materialCount} {product.materialCount === 1 ? 'material' : 'materiais'}</Text>
           <Text className="text-indigo-600 font-semibold mt-2">Materiais: {(product.materialCostCents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</Text>
+          {product.additionalCostCents > 0 && <Text className="text-gray-600 mt-1">Despesas adicionais: {formatCurrency(product.additionalCostCents)}</Text>}
         </View>
       </View>
       <View className="flex-row justify-end mt-4 gap-4">

@@ -18,6 +18,10 @@ function validateProduct(input: CreateProductInput): CreateProductInput {
   if (input.materials.some(m => !Number.isSafeInteger(m.materialId) || m.materialId <= 0 || !Number.isFinite(m.quantityUsed) || m.quantityUsed <= 0)) {
     throw new Error('Informe uma quantidade válida para todos os materiais.');
   }
+  if (new Set(input.additionalExpenses.map(e => e.expenseId)).size !== input.additionalExpenses.length ||
+      input.additionalExpenses.some(e => !Number.isSafeInteger(e.expenseId) || e.expenseId <= 0 || !Number.isSafeInteger(e.quantity) || e.quantity <= 0)) {
+    throw new Error('Informe quantidades inteiras positivas para as despesas adicionais, sem duplicatas.');
+  }
   return { ...input, name, description: input.description?.trim() || null };
 }
 

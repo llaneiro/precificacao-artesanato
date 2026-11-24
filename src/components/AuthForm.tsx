@@ -1,5 +1,6 @@
+import { FormScrollView } from './FormScrollView';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface AuthFormProps {
@@ -61,7 +62,7 @@ export function AuthForm({ registering = false, onSubmit, onSwitch }: AuthFormPr
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
-      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }} keyboardShouldPersistTaps="handled">
+      <FormScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}>
         <Text className="text-2xl font-bold text-indigo-600 mb-2">Precificação Artesanal</Text>
         <Text className="text-lg font-semibold text-gray-800 mb-6">{registering ? 'Criar conta' : 'Entrar'}</Text>
         <Text className="text-gray-700 font-semibold mb-2">E-mail</Text>
@@ -81,7 +82,7 @@ export function AuthForm({ registering = false, onSubmit, onSwitch }: AuthFormPr
         <TouchableOpacity disabled={busy} onPress={onSwitch} className="p-4">
           <Text className="text-indigo-600 text-center font-semibold">{registering ? 'Já tenho conta' : 'Criar uma conta'}</Text>
         </TouchableOpacity>
-      </ScrollView>
+      </FormScrollView>
     </SafeAreaView>
   );
 }

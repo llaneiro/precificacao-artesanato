@@ -1,13 +1,16 @@
-import { ActivityIndicator, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FormScrollView } from '../src/components/FormScrollView';
+import { ActivityIndicator, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import { useProductForm } from '../src/hooks/useProductForm';
+import { formatCurrency } from '../src/utils/currency';
 
 export default function ProductFormScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
   const form = useProductForm(id);
+  const [showAdditional, setShowAdditional] = useState(false);
   const [showMaterials, setShowMaterials] = useState(false);
   const inputClass = 'bg-white border border-gray-300 rounded-xl px-4 py-3 text-base text-gray-800 mb-4';
   const labelClass = 'text-gray-700 font-semibold mb-2';
@@ -19,13 +22,14 @@ export default function ProductFormScreen() {
   return (
     <SafeAreaView edges={['bottom', 'left', 'right']} className="flex-1 bg-gray-50">
       <Stack.Screen options={{ title: form.isEditing ? 'Editar produto' : 'Novo produto' }} />
-      {form.loading || form.materialsLoading ? <ActivityIndicator className="mt-8" color="#4f46e5" /> : form.loadError || form.materialsError ? (
+      {form.loading || form.materialsLoading || form.additionalLoading ? <ActivityIndicator className="mt-8" color="#4f46e5" /> : form.loadError || form.materialsError || form.additionalError ? (
         <View className="p-4">
-          <Text className="text-red-600">{form.loadError ?? form.materialsError}</Text>
+          <Text className="text-red-600">{form.loadError ?? form.materialsError ?? form.additionalError}</Text>
+          {form.additionalError && <TouchableOpacity onPress={() => void form.loadAdditionalExpenses()} className="p-3"><Text className="text-indigo-600">Tentar carregar despesas novamente</Text></TouchableOpacity>}
           {form.materialsError && <TouchableOpacity onPress={() => void form.loadMaterials()} className="p-3"><Text className="text-indigo-600">Tentar novamente</Text></TouchableOpacity>}
         </View>
       ) : (
-        <ScrollView contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
+        <FormScrollView contentContainerStyle={{ padding: 16 }}>
           <Text className={labelClass}>Foto (opcional)</Text>
           {form.photoUri && <Image source={{ uri: form.photoUri }} className="w-full h-48 rounded-xl bg-gray-100 mb-2" resizeMode="contain" />}
           <View className="flex-row gap-2 mb-4">
@@ -77,16 +81,45 @@ export default function ProductFormScreen() {
             ))}
             {!form.materials.some(m => !form.selected.some(s => s.materialId === m.id)) && <Text className="p-3 text-gray-500">{form.materials.length ? 'Todos os materiais já foram adicionados.' : 'Cadastre materiais na aba Materiais antes de criar um produto.'}</Text>}
           </View>}
+          <Text className="text-lg font-bold text-gray-800 mt-2 mb-2">Despesas adicionais (opcional)</Text>
+          <Text className="text-gray-500 text-sm mb-3">Serviços ou outros custos específicos desta peça, cadastrados em Despesas.</Text>
+          {form.selectedAdditional.map(selection => {
+            const expense = form.additionalExpenses.find(e => e.id === selection.expenseId);
+            return (
+              <View key={selection.expenseId} className="bg-white border border-gray-200 rounded-xl p-3 mb-3">
+                <View className="flex-row items-center justify-between gap-2 mb-2">
+                  <Text className="font-bold text-gray-800 flex-1">{expense?.name ?? 'Despesa indisponível'}</Text>
+                  <TouchableOpacity disabled={form.saving} onPress={() => form.removeAdditional(selection.expenseId)}><Text className="text-red-600">Remover</Text></TouchableOpacity>
+                </View>
+                {!!expense && <Text className="text-gray-500 mb-2">{formatCurrency(expense.costCents)} / utilização</Text>}
+                <Text className="text-gray-600 mb-1">Quantidade de utilizações</Text>
+                <TextInput className={inputClass} value={selection.quantity} onChangeText={v => form.changeAdditionalQuantity(selection.expenseId, v)} keyboardType="number-pad" editable={!form.saving} />
+              </View>
+            );
+          })}
+          <TouchableOpacity disabled={form.saving} onPress={() => setShowAdditional(old => !old)} className="border border-indigo-300 rounded-xl p-3 mb-3">
+            <Text className="text-indigo-600 font-semibold text-center">{showAdditional ? 'Fechar lista' : '+ Adicionar despesa'}</Text>
+          </TouchableOpacity>
+          {showAdditional && <View className="bg-white border border-gray-200 rounded-xl p-2 mb-4">
+            {form.additionalExpenses.filter(e => !form.selectedAdditional.some(s => s.expenseId === e.id)).map(expense => (
+              <TouchableOpacity key={expense.id} disabled={form.saving} className="p-3 border-b border-gray-100" onPress={() => { form.addAdditional(expense.id); setShowAdditional(false); }}>
+                <Text className="text-gray-800 font-medium">{expense.name} · {formatCurrency(expense.costCents)}</Text>
+              </TouchableOpacity>
+            ))}
+            {!form.additionalExpenses.some(e => !form.selectedAdditional.some(s => s.expenseId === e.id)) && <Text className="p-3 text-gray-500">{form.additionalExpenses.length ? 'Todas as despesas já foram adicionadas.' : 'Cadastre despesas adicionais na aba Despesas.'}</Text>}
+          </View>}
           <View className="bg-indigo-50 rounded-xl p-4 mb-4">
             <Text className="text-gray-600">Custo estimado dos materiais</Text>
             <Text className="text-xl text-indigo-700 font-bold">{form.totalCostCents === null ? '—' : (form.totalCostCents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</Text>
-            <Text className="text-gray-500 text-sm mt-1">Não inclui mão de obra, despesas ou lucro.</Text>
+            <Text className="text-gray-600 mt-3">Despesas adicionais</Text>
+            <Text className="text-indigo-700 font-bold">{form.additionalCostCents === null ? '—' : formatCurrency(form.additionalCostCents)}</Text>
+            <Text className="text-gray-500 text-sm mt-2">Não inclui mão de obra, despesas fixas, taxas de venda ou lucro.</Text>
           </View>
           {!!form.error && <Text className="text-red-600 mb-4" accessibilityRole="alert">{form.error}</Text>}
           <TouchableOpacity disabled={form.saving} onPress={() => void handleSave()} className={'rounded-xl p-4 ' + (form.saving ? 'bg-indigo-400' : 'bg-indigo-600')}>
             <Text className="text-white font-bold text-center">{form.saving ? 'Salvando...' : 'Salvar produto'}</Text>
           </TouchableOpacity>
-        </ScrollView>
+        </FormScrollView>
       )}
     </SafeAreaView>
   );

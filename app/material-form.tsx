@@ -1,4 +1,5 @@
-import { ActivityIndicator, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FormScrollView } from '../src/components/FormScrollView';
+import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMaterialForm } from '../src/hooks/useMaterialForm';
@@ -20,7 +21,7 @@ export default function MaterialFormScreen() {
       {loading ? <ActivityIndicator className="mt-8" color="#4f46e5" /> : loadError ? (
         <View className="p-4"><Text className="text-red-600">{loadError}</Text></View>
       ) : (
-        <ScrollView className="flex-1" contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
+        <FormScrollView contentContainerStyle={{ padding: 16 }}>
           <Text className="text-gray-700 font-semibold mb-2">Nome do material</Text>
           <TextInput className={inputClass} value={fields.name} onChangeText={v => setField('name', v)} placeholder="Ex.: Fio de algodão" editable={!saving} />
           <Text className="text-gray-700 font-semibold mb-2">Preço de referência (R$)</Text>
@@ -34,7 +35,7 @@ export default function MaterialFormScreen() {
           <TouchableOpacity disabled={saving} onPress={handleSave} className={'rounded-xl p-4 ' + (saving ? 'bg-indigo-400' : 'bg-indigo-600')}>
             <Text className="text-white font-bold text-center">{saving ? 'Salvando...' : 'Salvar material'}</Text>
           </TouchableOpacity>
-        </ScrollView>
+        </FormScrollView>
       )}
     </SafeAreaView>
   );

@@ -1,0 +1,10 @@
+{
+  "indexes": [],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "productPhotos",
+      "fieldPath": "base64",
+      "indexes": []
+    }
+  ]
+}

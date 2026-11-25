@@ -1,3 +1,4 @@
+import { useSyncStatus } from '../src/contexts/SyncContext';
 import { OptionsMenu } from '../src/components/OptionsMenu';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -10,6 +11,7 @@ import { getProductPhotoUri } from '../src/services/productPhoto';
 
 export default function ProductDetailsScreen() {
   const router = useRouter();
+  const remoteVersion = useSyncStatus().remoteVersion;
   const { id } = useLocalSearchParams<{ id: string }>();
   const { getProductById, removeProduct } = useProducts(false);
   const [product, setProduct] = useState<ProductDetails | null>(null);
@@ -26,7 +28,7 @@ export default function ProductDetailsScreen() {
     }).catch(() => { if (active) setError('Não foi possível carregar o produto.'); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [id, getProductById]));
+  }, [id, getProductById, remoteVersion]));
   function confirmDelete() {
     if (!product || deleting) return;
     Alert.alert('Excluir produto', 'Deseja excluir "' + product.name + '"?', [

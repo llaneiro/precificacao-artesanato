@@ -1,0 +1,126 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid}/syncRecords/{recordId} {
+      // Legado somente para leitura durante a migração.
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+    match /users/{uid}/productPhotos/{filename} {
+      function owner() { return request.auth != null && request.auth.uid == uid; }
+      function productPath(productId) {
+        return /databases/$(database)/documents/users/$(uid)/products/$(productId);
+      }
+      function validProductId(productId) {
+        return productId is string && productId.matches('[a-f0-9]{32}');
+      }
+      function linkedAfter(productId) {
+        return existsAfter(productPath(productId))
+          && getAfter(productPath(productId)).data.deleted == false
+          && getAfter(productPath(productId)).data.get('photoFilename', null) == filename;
+      }
+      allow read: if owner();
+      allow create: if owner()
+        && filename.matches('[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}[.][a-zA-Z0-9]{1,8}')
+        && request.resource.data.keys().hasAll(['schemaVersion','mimeType','base64','createdAt','productId'])
+        && request.resource.data.keys().hasOnly(['schemaVersion','mimeType','base64','createdAt','productId'])
+        && request.resource.data.schemaVersion == 1
+        && request.resource.data.mimeType == 'image/jpeg'
+        && request.resource.data.base64 is string
+        && request.resource.data.base64.size() <= 280000
+        && request.resource.data.base64.matches('/9j/.*')
+        && request.resource.data.createdAt == request.time
+        && validProductId(request.resource.data.productId)
+        && linkedAfter(request.resource.data.productId);
+      // Adoção legada: somente adiciona o proprietário, sem alterar a imagem.
+      allow update: if owner() && !('productId' in resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['productId'])
+        && validProductId(request.resource.data.productId)
+        && linkedAfter(request.resource.data.productId);
+      // Só apaga junto com a alteração do produto que possuía a imagem.
+      allow delete: if owner() && 'productId' in resource.data
+        && validProductId(resource.data.productId)
+        && exists(productPath(resource.data.productId))
+        && get(productPath(resource.data.productId)).data.photoFilename == filename
+        && !linkedAfter(resource.data.productId);
+    }
+    match /users/{uid}/{entity}/{recordId} {
+      function owner() { return request.auth != null && request.auth.uid == uid; }
+      function allowedEntity() {
+        return entity in ['additionalExpenses', 'fixedExpenses', 'materialCostHistory', 'materials', 'pricingHistory', 'productAdditionalExpenses', 'productMaterials', 'products', 'settings'];
+      }
+      function valid() {
+        let d = request.resource.data;
+        return d.keys().hasAll(['schemaVersion', 'tableName', 'globalId', 'revision', 'deleted', 'updatedAt'])
+          && d.schemaVersion == 2
+          && d.globalId is string
+          && d.revision is int && d.revision > 0 && d.revision <= 9007199254740991
+          && d.deleted is bool
+          && d.updatedAt == request.time
+          && (!d.deleted || d.keys().hasOnly(['schemaVersion', 'tableName', 'globalId', 'revision', 'deleted', 'updatedAt']))
+          && (
+          (d.tableName == 'materials' && entity == 'materials'
+          && d.globalId.matches('[a-f0-9]{32}') && recordId == d.globalId
+          && (d.deleted || (d.keys().hasAll(['name', 'costCents', 'quantity', 'unit', 'createdAt']) && d.keys().hasOnly(['schemaVersion', 'tableName', 'globalId', 'revision', 'deleted', 'updatedAt', 'name', 'costCents', 'quantity', 'unit', 'createdAt']))))
+          || (d.tableName == 'products' && entity == 'products'
+          && d.globalId.matches('[a-f0-9]{32}') && recordId == d.globalId
+          && (d.deleted || (d.keys().hasAll(['name', 'description', 'productionMinutes', 'createdAt']) && d.keys().hasOnly(['schemaVersion', 'tableName', 'globalId', 'revision', 'deleted', 'updatedAt', 'name', 'description', 'productionMinutes', 'createdAt', 'photoFilename'])
+          && (!('photoFilename' in d) || d.photoFilename == null || (d.photoFilename is string
+            && d.photoFilename.matches('[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}[.][a-zA-Z0-9]{1,8}')
+            && existsAfter(/databases/$(database)/documents/users/$(uid)/productPhotos/$(d.photoFilename))
+            && (
+              (getAfter(/databases/$(database)/documents/users/$(uid)/productPhotos/$(d.photoFilename)).data.get('productId', '') == recordId)
+              || (exists(/databases/$(database)/documents/users/$(uid)/products/$(recordId))
+                && resource.data.get('photoFilename', null) == d.photoFilename
+                && !('productId' in getAfter(/databases/$(database)/documents/users/$(uid)/productPhotos/$(d.photoFilename)).data))
+            ))))))
+          || (d.tableName == 'product_materials' && entity == 'productMaterials'
+          && d.globalId.matches('[a-f0-9]{32}') && recordId == d.globalId
+          && (d.deleted || (d.keys().hasAll(['productId', 'materialId', 'quantityUsed', 'usageUnit']) && d.keys().hasOnly(['schemaVersion', 'tableName', 'globalId', 'revision', 'deleted', 'updatedAt', 'productId', 'materialId', 'quantityUsed', 'usageUnit']))))
+          || (d.tableName == 'material_cost_history' && entity == 'materialCostHistory'
+          && d.globalId.matches('[a-f0-9]{32}') && recordId == d.globalId
+          && (d.deleted || (d.keys().hasAll(['materialId', 'materialName', 'kind', 'costCents', 'quantity', 'unit', 'previousCostCents', 'previousQuantity', 'previousUnit', 'recordedAt']) && d.keys().hasOnly(['schemaVersion', 'tableName', 'globalId', 'revision', 'deleted', 'updatedAt', 'materialId', 'materialName', 'kind', 'costCents', 'quantity', 'unit', 'previousCostCents', 'previousQuantity', 'previousUnit', 'recordedAt']))))
+          || (d.tableName == 'fixed_expenses' && entity == 'fixedExpenses'
+          && d.globalId.matches('[a-f0-9]{32}') && recordId == d.globalId
+          && (d.deleted || (d.keys().hasAll(['name', 'monthlyCostCents', 'description', 'createdAt']) && d.keys().hasOnly(['schemaVersion', 'tableName', 'globalId', 'revision', 'deleted', 'updatedAt', 'name', 'monthlyCostCents', 'description', 'createdAt']))))
+          || (d.tableName == 'additional_expenses' && entity == 'additionalExpenses'
+          && d.globalId.matches('[a-f0-9]{32}') && recordId == d.globalId
+          && (d.deleted || (d.keys().hasAll(['name', 'costCents', 'description', 'createdAt']) && d.keys().hasOnly(['schemaVersion', 'tableName', 'globalId', 'revision', 'deleted', 'updatedAt', 'name', 'costCents', 'description', 'createdAt']))))
+          || (d.tableName == 'product_additional_expenses' && entity == 'productAdditionalExpenses'
+          && d.globalId.matches('[a-f0-9]{32}') && recordId == d.globalId
+          && (d.deleted || (d.keys().hasAll(['productId', 'expenseId', 'quantity']) && d.keys().hasOnly(['schemaVersion', 'tableName', 'globalId', 'revision', 'deleted', 'updatedAt', 'productId', 'expenseId', 'quantity']))))
+          || (d.tableName == 'pricing_settings' && entity == 'settings'
+          && d.globalId == 'account' && recordId == 'pricing'
+          && (d.deleted || (d.keys().hasAll(['laborMode', 'productiveHours', 'hourlyCostCents', 'monthlyIncomeCents', 'debitBps', 'creditBps', 'pixBps', 'marginBps', 'noFixedExpenses', 'debitUnused', 'creditUnused', 'pixUnused']) && d.keys().hasOnly(['schemaVersion', 'tableName', 'globalId', 'revision', 'deleted', 'updatedAt', 'laborMode', 'productiveHours', 'hourlyCostCents', 'monthlyIncomeCents', 'debitBps', 'creditBps', 'pixBps', 'marginBps', 'noFixedExpenses', 'debitUnused', 'creditUnused', 'pixUnused']))))
+          || (d.tableName == 'pricing_history' && entity == 'pricingHistory'
+          && d.globalId.matches('[a-f0-9]{32}') && recordId == d.globalId
+          && (d.deleted || (d.keys().hasAll(['productId', 'productName', 'mode', 'totalCostCents', 'salePriceCents', 'profitCents', 'createdAt', 'snapshot']) && d.keys().hasOnly(['schemaVersion', 'tableName', 'globalId', 'revision', 'deleted', 'updatedAt', 'productId', 'productName', 'mode', 'totalCostCents', 'salePriceCents', 'profitCents', 'createdAt', 'snapshot']))))
+          || (d.tableName == 'onboarding_state' && entity == 'settings'
+          && d.globalId == 'account' && recordId == 'onboarding'
+          && (d.deleted || (d.keys().hasAll(['completedAt']) && d.keys().hasOnly(['schemaVersion', 'tableName', 'globalId', 'revision', 'deleted', 'updatedAt', 'completedAt']))))
+          || (d.tableName == 'dashboard_settings' && entity == 'settings'
+          && d.globalId == 'account' && recordId == 'dashboard'
+          && (d.deleted || (d.keys().hasAll(['reviewDays']) && d.keys().hasOnly(['schemaVersion', 'tableName', 'globalId', 'revision', 'deleted', 'updatedAt', 'reviewDays']))))
+          );
+      }
+      function validCreation() {
+        let d = request.resource.data;
+        let legacy = /databases/$(database)/documents/users/$(uid)/syncRecords/$(d.tableName + '_' + d.globalId);
+        return (d.revision == 1 && !exists(legacy))
+          || (exists(legacy) && get(legacy).data.schemaVersion == 1
+            && get(legacy).data.revision == d.revision
+            && get(legacy).data.deleted == d.deleted);
+      }
+      allow read: if owner() && allowedEntity();
+      allow create: if owner() && allowedEntity() && valid() && validCreation();
+      allow update: if owner() && allowedEntity() && valid()
+        && resource.data.schemaVersion == 2
+        && request.resource.data.tableName == resource.data.tableName
+        && request.resource.data.globalId == resource.data.globalId
+        && request.resource.data.revision == resource.data.revision + 1
+        && (entity != 'products' || request.resource.data.deleted
+          || !('photoFilename' in resource.data) || 'photoFilename' in request.resource.data);
+      allow delete: if false;
+    }
+  }
+}

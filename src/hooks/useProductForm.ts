@@ -168,7 +168,7 @@ export function useProductForm(id?: string) {
       if (!linked.length) throw new Error('Adicione pelo menos um material.');
       if (!Number.isSafeInteger(getMaterialCostCents(linked))) throw new Error('O custo informado é muito alto.');
       const extra = resolveAdditional();
-      if (newPhoto) copied = saveProductPhoto(newPhoto);
+      if (newPhoto) copied = await saveProductPhoto(newPhoto);
       const input = {
         name, description: fields.description.trim() || null, productionMinutes,
         photoFilename: copied ?? photoFilename,

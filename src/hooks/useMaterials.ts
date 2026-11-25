@@ -1,3 +1,4 @@
+import { useSyncStatus } from '../contexts/SyncContext';
 import { useState, useCallback } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { useAuthContext } from '../contexts/AuthContext';
@@ -24,6 +25,7 @@ function validateMaterial(input: CreateMaterialInput): CreateMaterialInput {
 // O UID da conta autenticada identifica os registros locais.
 export function useMaterials(loadOnFocus = true) {
   const { user } = useAuthContext();
+  const remoteVersion = useSyncStatus().remoteVersion;
   const userId = user?.uid;
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +54,7 @@ export function useMaterials(loadOnFocus = true) {
   useFocusEffect(
     useCallback(() => {
       if (loadOnFocus) void loadMaterials();
-    }, [loadMaterials, loadOnFocus]),
+    }, [loadMaterials, loadOnFocus, remoteVersion]),
   );
 
   const addMaterial = useCallback(

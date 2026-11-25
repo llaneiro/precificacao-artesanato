@@ -1,3 +1,4 @@
+import { syncSchemaSql } from './syncSchema';
 import * as SQLite from 'expo-sqlite';
 
 const DATABASE_NAME = 'precificacao-artesanal.db';
@@ -30,6 +31,7 @@ async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
   await db.execAsync(`
     PRAGMA journal_mode = WAL;
     PRAGMA foreign_keys = ON;
+    CREATE TABLE IF NOT EXISTS sync_import_guard (userId TEXT PRIMARY KEY);
     CREATE TABLE IF NOT EXISTS materials (
       id         INTEGER PRIMARY KEY AUTOINCREMENT,
       userId     TEXT    NOT NULL,
@@ -173,8 +175,10 @@ async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
       SELECT 1 FROM material_cost_history h WHERE h.userId = m.userId AND h.materialId = m.id
     );
 
+    DROP TRIGGER IF EXISTS record_material_cost_insert;
     CREATE TRIGGER IF NOT EXISTS record_material_cost_insert
     AFTER INSERT ON materials
+    WHEN NOT EXISTS (SELECT 1 FROM sync_import_guard WHERE userId=NEW.userId)
     BEGIN
       INSERT INTO material_cost_history (userId, materialId, materialName, kind, costCents, quantity, unit, recordedAt)
       VALUES (NEW.userId, NEW.id, NEW.name, 'created', NEW.costCents, NEW.quantity, NEW.unit, NEW.createdAt);
@@ -183,6 +187,7 @@ async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
     DROP TRIGGER IF EXISTS record_material_cost_update;
     CREATE TRIGGER IF NOT EXISTS record_material_cost_update
     AFTER UPDATE OF costCents, quantity, unit ON materials
+    WHEN NOT EXISTS (SELECT 1 FROM sync_import_guard WHERE userId=NEW.userId)
     BEGIN
       INSERT INTO material_cost_history (
         userId, materialId, materialName, kind, costCents, quantity, unit,
@@ -270,8 +275,10 @@ async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
     await db.execAsync('ALTER TABLE pricing_settings ADD COLUMN noFixedExpenses INTEGER NOT NULL DEFAULT 0 CHECK(noFixedExpenses IN (0, 1))');
   }
   await db.execAsync(`
+    DROP TRIGGER IF EXISTS reset_no_fixed_expenses;
     CREATE TRIGGER IF NOT EXISTS reset_no_fixed_expenses
     AFTER INSERT ON fixed_expenses
+    WHEN NOT EXISTS (SELECT 1 FROM sync_import_guard WHERE userId=NEW.userId)
     BEGIN
       UPDATE pricing_settings SET noFixedExpenses = 0 WHERE userId = NEW.userId;
     END;
@@ -309,5 +316,17 @@ async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
       reviewDays INTEGER NOT NULL CHECK(reviewDays IN (15,30,60,90))
     );
   `);
+
+  await db.withTransactionAsync(async () => { await db.execAsync(syncSchemaSql());
+    // Reenvia fotos anteriores à integração uma única vez, sem apagar a fila.
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS sync_photo_migration (version INTEGER PRIMARY KEY);
+      INSERT INTO sync_queue(userId,tableName,localKey,generation,deleted)
+        SELECT userId,'products',CAST(id AS TEXT),1,0 FROM products
+        WHERE photoFilename IS NOT NULL AND NOT EXISTS(SELECT 1 FROM sync_photo_migration WHERE version=1)
+        ON CONFLICT(userId,tableName,localKey) DO UPDATE SET generation=generation+1,deleted=0;
+      INSERT OR IGNORE INTO sync_photo_migration VALUES(1);
+    `);
+   });
 
 }

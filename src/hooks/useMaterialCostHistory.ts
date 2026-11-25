@@ -1,3 +1,4 @@
+import { useSyncStatus } from '../contexts/SyncContext';
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { useAuthContext } from '../contexts/AuthContext';
@@ -8,6 +9,7 @@ import type { Material } from '../types/material';
 
 export function useMaterialCostHistory(materialId: number) {
   const { user } = useAuthContext();
+  const remoteVersion = useSyncStatus().remoteVersion;
   const userId = user?.uid;
   const [records, setRecords] = useState<MaterialCostHistoryRecord[]>([]);
   const [material, setMaterial] = useState<Material | null>(null);
@@ -26,6 +28,6 @@ export function useMaterialCostHistory(materialId: number) {
       setError('Não foi possível carregar o histórico.');
     } finally { setLoading(false); }
   }, [userId, materialId]);
-  useFocusEffect(useCallback(() => { void load(); }, [load]));
+  useFocusEffect(useCallback(() => { void load(); }, [load, remoteVersion]));
   return { records, material, loading, error, load };
 }

@@ -1,3 +1,4 @@
+import { SyncProvider } from '../src/contexts/SyncContext';
 import '../global.css';
 import { Stack } from 'expo-router';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -15,7 +16,7 @@ export default function RootLayout() {
   return (
     <KeyboardProvider statusBarTranslucent={Platform.OS === 'android'}>
       <AuthProvider>
-        <RootLayoutNav />
+        <SyncProvider><RootLayoutNav /></SyncProvider>
       </AuthProvider>
     </KeyboardProvider>
   );

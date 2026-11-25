@@ -1,3 +1,4 @@
+import { useSyncStatus } from '../contexts/SyncContext';
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { useAuthContext } from '../contexts/AuthContext';
@@ -6,6 +7,7 @@ import type { PricingHistorySummary } from '../types/pricingHistory';
 
 export function usePricingHistory(productId?: number, loadOnFocus = true) {
   const { user } = useAuthContext();
+  const remoteVersion = useSyncStatus().remoteVersion;
   const userId = user?.uid;
   const [records, setRecords] = useState<PricingHistorySummary[]>([]);
   const [loading, setLoading] = useState(loadOnFocus);
@@ -21,7 +23,7 @@ export function usePricingHistory(productId?: number, loadOnFocus = true) {
     finally { setLoading(false); }
   }, [userId, productId]);
 
-  useFocusEffect(useCallback(() => { if (loadOnFocus) void load(); }, [load, loadOnFocus]));
+  useFocusEffect(useCallback(() => { if (loadOnFocus) void load(); }, [load, loadOnFocus, remoteVersion]));
   const getById = useCallback((id: number) => userId && Number.isSafeInteger(id) && id > 0
     ? Repository.getPricingHistoryById(userId, id) : Promise.resolve(null), [userId]);
   const remove = useCallback(async (id: number) => {

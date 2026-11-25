@@ -1,3 +1,4 @@
+import { useSyncStatus } from '../contexts/SyncContext';
 import { useState, useCallback } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { useAuthContext } from '../contexts/AuthContext';
@@ -27,6 +28,7 @@ function validateProduct(input: CreateProductInput): CreateProductInput {
 
 export function useProducts(loadOnFocus = true) {
   const { user } = useAuthContext();
+  const remoteVersion = useSyncStatus().remoteVersion;
   const userId = user?.uid;
   const [products, setProducts] = useState<ProductSummary[]>([]);
   const [loading, setLoading] = useState(loadOnFocus);
@@ -47,7 +49,7 @@ export function useProducts(loadOnFocus = true) {
 
   useFocusEffect(useCallback(() => {
     if (loadOnFocus) void loadProducts();
-  }, [loadProducts, loadOnFocus]));
+  }, [loadProducts, loadOnFocus, remoteVersion]));
 
   const getProductById = useCallback(
     (id: number) => userId ? ProductRepository.getProductById(userId, id) : Promise.resolve(null),

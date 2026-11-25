@@ -1,3 +1,4 @@
+import { useSyncStatus } from '../contexts/SyncContext';
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { useAuthContext } from '../contexts/AuthContext';
@@ -15,6 +16,7 @@ function validateExpense(input: CreateExpenseInput): CreateExpenseInput {
 
 export function useExpenses(loadOnFocus = true) {
   const { user } = useAuthContext();
+  const remoteVersion = useSyncStatus().remoteVersion;
   const userId = user?.uid;
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(loadOnFocus);
@@ -39,7 +41,7 @@ export function useExpenses(loadOnFocus = true) {
 
   useFocusEffect(useCallback(() => {
     if (loadOnFocus) void loadExpenses();
-  }, [loadExpenses, loadOnFocus]));
+  }, [loadExpenses, loadOnFocus, remoteVersion]));
 
   const getExpenseById = useCallback(
     (id: number) => userId ? ExpenseRepository.getExpenseById(userId, id) : Promise.resolve(null),

@@ -303,4 +303,11 @@ async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_pricing_history_product_date ON pricing_history(userId, productId, createdAt DESC, id DESC);
   `);
 
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS dashboard_settings (
+      userId TEXT PRIMARY KEY NOT NULL,
+      reviewDays INTEGER NOT NULL CHECK(reviewDays IN (15,30,60,90))
+    );
+  `);
+
 }

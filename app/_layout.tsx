@@ -43,6 +43,8 @@ function RootLayoutNav() {
         <Stack.Screen name="product-details" options={{ title: 'Detalhes do produto' }} />
         <Stack.Screen name="profit-margin" options={{ title: 'Margem de lucro' }} />
         <Stack.Screen name="product-form" options={{ title: 'Novo produto' }} />
+        <Stack.Screen name="dashboard-settings" options={{ title: 'Lembretes' }} />
+        <Stack.Screen name="dashboard-reviews" options={{ title: 'Revisar' }} />
         <Stack.Screen name="material-price-form" options={{ title: 'Atualizar preço' }} />
         <Stack.Screen name="material-cost-history" options={{ title: 'Histórico de custos' }} />
         <Stack.Screen name="material-form" options={{ title: 'Novo material' }} />

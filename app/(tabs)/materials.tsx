@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Text, TouchableOpacity, View } from 'react-native';
 import { Tabs, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { HeaderAddButton } from '../../src/components/HeaderAddButton';
 import { MainScreen } from '../../src/components/MainScreen';
 import { useMaterials } from '../../src/hooks/useMaterials';
@@ -58,6 +59,12 @@ export default function MaterialsScreen() {
             refreshing={loading}
             onRefresh={() => void loadMaterials()}
             contentContainerStyle={{ flexGrow: 1 }}
+            ListHeaderComponent={
+              <View className="flex-row items-start gap-2 bg-indigo-50 border border-indigo-100 rounded-xl p-3 mb-4">
+                <Ionicons name="information-circle-outline" size={21} color="#4f46e5" />
+                <Text className="flex-1 text-gray-700 text-sm leading-5">Cadastre os insumos usados nas peças, incluindo <Text className="font-semibold text-indigo-800">embalagens e etiquetas</Text>.</Text>
+              </View>
+            }
             ListEmptyComponent={<EmptyState title="Nenhum material cadastrado" subtitle="Cadastre seu primeiro material." />}
             renderItem={({ item }) => (
               <MaterialItem material={item} disabled={deleting}

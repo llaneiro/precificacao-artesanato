@@ -54,7 +54,14 @@ export function syncSchemaSql() {
         CREATE TRIGGER sync_${table}_${op.toLowerCase()} AFTER ${op} ON ${table}
         WHEN NOT EXISTS (SELECT 1 FROM sync_import_guard WHERE userId=${alias}.userId)
         BEGIN
-          INSERT OR IGNORE INTO sync_identity(userId,tableName,localKey,globalId) VALUES(${alias}.userId,'${table}',${key},${identity});
+          -- Um UPSERT externo pode sobrepor o OR IGNORE de um trigger.
+          -- Só cria a identidade quando ela ainda não existe, preservando a revisão.
+          INSERT INTO sync_identity(userId,tableName,localKey,globalId)
+            SELECT ${alias}.userId,'${table}',${key},${identity}
+            WHERE NOT EXISTS (
+              SELECT 1 FROM sync_identity i
+              WHERE i.userId=${alias}.userId AND i.tableName='${table}' AND i.localKey=${key}
+            );
           INSERT INTO sync_queue(userId,tableName,localKey,generation,deleted)
             VALUES(${alias}.userId,'${table}',${key},1,${op==='DELETE'?1:0})
             ON CONFLICT(userId,tableName,localKey) DO UPDATE SET generation=generation+1,deleted=excluded.deleted;

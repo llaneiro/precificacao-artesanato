@@ -1,3 +1,4 @@
+import { useSyncStatus } from '../contexts/SyncContext';
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { useAuthContext } from '../contexts/AuthContext';
@@ -5,9 +6,11 @@ import * as Repository from '../database/pricingSettingsRepository';
 import { LaborMode, PricingSettings, PaymentDrafts } from '../types/pricingSettings';
 import { parseFees, parseLabor } from '../utils/pricingInputs';
 
-export function usePricingSettings(loadOnFocus = true) {
+export function usePricingSettings(loadOnFocus = true, refreshOnSync = false) {
   const { user } = useAuthContext();
   const userId = user?.uid;
+  const syncVersion = useSyncStatus().remoteVersion;
+  const refreshVersion = refreshOnSync ? syncVersion : undefined;
   const [settings, setSettings] = useState<PricingSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +29,7 @@ export function usePricingSettings(loadOnFocus = true) {
 
   useFocusEffect(useCallback(() => {
     if (loadOnFocus) void loadSettings();
-  }, [loadOnFocus, loadSettings]));
+  }, [loadOnFocus, loadSettings, refreshVersion]));
 
   const saveLabor = useCallback(async (mode: LaborMode, hours: string, amount: string) => {
     if (!userId) throw new Error('Faça login para configurar a mão de obra.');

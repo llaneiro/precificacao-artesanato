@@ -1,32 +1,19 @@
-import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
-import { Tabs, useFocusEffect, useRouter } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { MainScreen } from '../../src/components/MainScreen';
-import { useOnboarding } from '../../src/hooks/useOnboarding';
 import { useDashboard } from '../../src/hooks/useDashboard';
 import { DashboardAction } from '../../src/components/DashboardAction';
 import { formatCurrency } from '../../src/utils/currency';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { hasCompleted } = useOnboarding();
   const { data, loading, error, load } = useDashboard();
-  const [checkError, setCheckError] = useState(false);
-  useFocusEffect(useCallback(() => {
-    let active = true;
-    setCheckError(false);
-    hasCompleted().then(completed => {
-      if (active && !completed) router.push('/onboarding');
-    }).catch(() => { if (active) setCheckError(true); });
-    return () => { active = false; };
-  }, [hasCompleted, router]));
   return <MainScreen>
     <Tabs.Screen options={{ title:'Início', headerRight: () => <View style={{ marginRight:16 }}><Pressable accessibilityRole="button" accessibilityLabel="Configurar lembretes" onPress={() => router.push('/dashboard-settings')} className="w-11 h-11 items-center justify-center"><Ionicons name="settings-outline" size={24} color="#fff" /></Pressable></View> }} />
     <ScrollView contentContainerStyle={{ padding:16, paddingBottom:24 }} refreshControl={<RefreshControl refreshing={loading} onRefresh={() => void load()} tintColor="#4f46e5" colors={['#4f46e5']} />}>
       <Text className="text-2xl font-bold text-gray-900">Olá! 👋</Text>
       <Text className="text-gray-500 text-sm mt-1 mb-4">Vamos cuidar dos preços do seu negócio?</Text>
-      {checkError && <Pressable onPress={() => router.push('/onboarding')} className="p-3 bg-white rounded-xl mb-3"><Text className="text-indigo-700">Abrir guia de primeiros passos</Text></Pressable>}
       {error ? <View className="bg-white rounded-xl p-4"><Text className="text-red-600">{error}</Text><Pressable onPress={() => void load()} className="py-3"><Text className="text-indigo-700 font-semibold">Tentar novamente</Text></Pressable></View> :
         !data ? <ActivityIndicator className="mt-8" color="#4f46e5" /> : <>
         <View className="flex-row gap-3 mb-5">

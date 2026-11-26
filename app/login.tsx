@@ -4,6 +4,6 @@ import { useAuthContext } from '../src/contexts/AuthContext';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { signIn } = useAuthContext();
-  return <AuthForm onSubmit={signIn} onSwitch={() => router.push('/register')} />;
+  const { signIn, resetPassword } = useAuthContext();
+  return <AuthForm onSubmit={signIn} onReset={resetPassword} onSwitch={() => router.push('/register')} />;
 }

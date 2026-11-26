@@ -31,7 +31,10 @@ function RootLayoutNav() {
     <Stack screenOptions={{ headerStyle: { backgroundColor: '#4f46e5' }, headerTintColor: '#fff', statusBarStyle: canSetScreenStatusBar ? (user ? 'light' : 'dark') : undefined }}>
       <Stack.Protected guard={!!user}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false, statusBarStyle: canSetScreenStatusBar ? 'dark' : undefined }} />
+        <Stack.Screen name="account" options={{ title: 'Meu perfil' }} />
+        <Stack.Screen name="settings" options={{ title: 'Configurações' }} />
+        <Stack.Screen name="about" options={{ title: 'Sobre o sistema' }} />
+        <Stack.Screen name="onboarding" options={{ title: 'Prepare seu negócio' }} />
         <Stack.Screen name="fixed-expenses" options={{ title: 'Despesas fixas' }} />
         <Stack.Screen name="additional-expenses" options={{ title: 'Despesas adicionais' }} />
         <Stack.Screen name="additional-expense-form" options={{ title: 'Nova despesa adicional' }} />

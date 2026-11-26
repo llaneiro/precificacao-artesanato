@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuthContext } from '../contexts/AuthContext';
 import { usePricingSettings } from './usePricingSettings';
 import { LaborMode, PaymentDrafts, PaymentMethod, PaymentChoice, PAYMENT_METHODS, getPaymentChoice } from '../types/pricingSettings';
 import { centsToInput } from '../utils/currency';
@@ -7,7 +9,9 @@ import { hourlyRate } from '../types/pricingSettings';
 
 export function usePricingForm(section: 'labor' | 'fees') {
   const { settings, loading, error: loadError, loadSettings, saveLabor, saveFees } = usePricingSettings(false);
-  const [mode, setMode] = useState<LaborMode>('hourly');
+  const uid = useAuthContext().user?.uid;
+  const routineKey = uid ? 'labor-routine-v1:' + uid : null;
+  const [mode, setMode] = useState<LaborMode>('monthly');
   const [hours, setHours] = useState('');
   const [hourly, setHourly] = useState('');
   const [monthly, setMonthly] = useState('');
@@ -29,10 +33,8 @@ export function usePricingForm(section: 'labor' | 'fees') {
   useEffect(() => { void loadSettings(); }, [loadSettings]);
   useEffect(() => {
     if (loading || loadError) return;
-    // Wait for the initial load; settings may legitimately be null.
     if (!settings) return;
-    setMode(settings.laborMode ?? 'hourly');
-    setHours(settings.productiveHours === null ? '' : String(settings.productiveHours));
+    setMode(settings.laborMode ?? 'monthly');
     setHourly(settings.hourlyCostCents === null ? '' : centsToInput(settings.hourlyCostCents));
     setMonthly(settings.monthlyIncomeCents === null ? '' : centsToInput(settings.monthlyIncomeCents));
     const drafts = {} as PaymentDrafts;
@@ -43,6 +45,19 @@ export function usePricingForm(section: 'labor' | 'fees') {
     }
     setPayments(drafts);
   }, [settings, loading, loadError]);
+
+  useEffect(() => {
+    if (section !== 'labor' || loading || loadError) return;
+    const savedHours = settings?.productiveHours ?? null;
+    setHours(savedHours === null ? '' : String(savedHours));
+  }, [section, loading, loadError, settings]);
+
+  // Remove a preferência criada pela versão experimental anterior.
+  useEffect(() => {
+    if (section === 'labor' && routineKey) {
+      void AsyncStorage.removeItem(routineKey).catch(() => {});
+    }
+  }, [section, routineKey]);
 
   let preview: number | null = null;
   try { preview = hourlyRate(parseLabor(mode, hours, mode === 'hourly' ? hourly : monthly)); } catch {}
@@ -66,5 +81,5 @@ export function usePricingForm(section: 'labor' | 'fees') {
   }
   return { mode, setMode, hours, setHours, hourly, setHourly, monthly, setMonthly,
     payments, setPaymentChoice, setPaymentFee, preview,
-    loading: loading, loadError, loadSettings, saving, error, save };
+    loading, loadError, loadSettings, saving, error, save };
 }

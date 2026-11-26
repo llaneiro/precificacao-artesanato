@@ -50,6 +50,7 @@ function RootLayoutNav() {
         <Stack.Screen name="dashboard-settings" options={{ title: 'Lembretes' }} />
         <Stack.Screen name="dashboard-reviews" options={{ title: 'Revisar' }} />
         <Stack.Screen name="material-price-form" options={{ title: 'Atualizar preço' }} />
+        <Stack.Screen name="material-details" options={{ title: 'Detalhes do material' }} />
         <Stack.Screen name="material-cost-history" options={{ title: 'Histórico de custos' }} />
         <Stack.Screen name="material-form" options={{ title: 'Novo material' }} />
       </Stack.Protected>

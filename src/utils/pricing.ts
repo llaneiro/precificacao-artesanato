@@ -12,6 +12,13 @@ const positive = (value: number) => Number.isFinite(value) && value > 0;
 const validBps = (value: number | null): value is number =>
   value !== null && Number.isInteger(value) && value >= 0 && value < 10000;
 
+// Preço líquido mínimo que cobre o custo e a margem desejada, em centavos.
+export function basePriceForMargin(total: number | null, margin: number | null): number | null {
+  if (total === null || cents(total) === null || !validBps(margin)) return null;
+  const denominator = BigInt(10000 - margin);
+  return cents(Number((BigInt(total) * BigInt(10000) + denominator - BigInt(1)) / denominator));
+}
+
 export function calculatePricing(product: ProductDetails, settings: PricingSettings | null, monthlyFixed: number | null, margin: number | null) {
   const costIssues: PricingIssue[] = [];
   const hours = Number.isSafeInteger(product.productionMinutes) && product.productionMinutes > 0 ? product.productionMinutes / 60 : null;
@@ -46,8 +53,7 @@ export function calculatePricing(product: ProductDetails, settings: PricingSetti
   if (!validBps(margin)) issues.push({ code: 'margin', message: 'Defina a margem de lucro desejada.' });
 
   // A margem incide sobre o valor líquido que o negócio deseja receber.
-  const base = total === null || !validBps(margin) ? null :
-    cents(Number((BigInt(total) * BigInt(10000) + BigInt(9999 - margin)) / BigInt(10000 - margin)));
+  const base = basePriceForMargin(total, margin);
   if (!issues.length && base === null) issues.push({ code: 'range', message: 'O preço calculado excede o limite suportado. Revise custos e margem.' });
 
   const payments = PAYMENT_METHODS

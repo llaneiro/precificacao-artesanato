@@ -38,7 +38,7 @@ export function financialGuide(settings: PricingSettings | null, expenses: Expen
       route: '/sales-fees',
       question: 'Como seus clientes pagam?',
       description: 'Informe se aceita Pix, débito e crédito e se paga alguma taxa por venda. Assim o preço pode cobrir as taxas sem reduzir seu lucro.',
-      example: 'Se não utiliza uma modalidade, marque “Não utilizo”. Se não paga taxa, escolha “Não pago taxa”.',
+      example: 'Se não utiliza uma modalidade, marque “Não utilizo”. Se não paga taxa, escolha “Sem taxa”.',
       done: !pending.includes('Formas de pagamento'),
       summary: fees + ' de 3 configuradas',
       optional: false,

@@ -9,6 +9,15 @@ export function parseFee(value: string): number | null {
   return bps;
 }
 
+export function parseMargin(value: string): number | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (!/^\d+(?:[,.]\d{1,2})?$/.test(trimmed)) throw new Error('Informe uma margem com até duas casas decimais.');
+  const bps = Math.round(Number(trimmed.replace(',', '.')) * 100);
+  if (!Number.isSafeInteger(bps) || bps < 0 || bps >= 10000) throw new Error('A margem deve estar entre 0% e 99,99%.');
+  return bps;
+}
+
 export function parseLabor(mode: LaborMode, hours: string, amount: string): LaborSettings {
   if (!/^\d+$/.test(hours.trim()) || Number(hours) < 1 || Number(hours) > 744) {
     throw new Error('Informe as horas produtivas mensais (de 1 a 744 horas inteiras).');
@@ -28,7 +37,7 @@ function parsePayment(draft: PaymentDraft, name: string): { fee: number | null; 
       let fee: number | null;
       try { fee = parseFee(draft.fee); }
       catch (error) { throw new Error(name + ': ' + (error instanceof Error ? error.message : 'Taxa inválida.')); }
-      if (fee === null || fee <= 0) throw new Error(name + ': informe uma taxa maior que zero ou selecione "Não pago taxa".');
+      if (fee === null || fee <= 0) throw new Error(name + ': informe uma taxa maior que zero ou selecione "Sem taxa".');
       return { fee, unused: 0 };
     }
     default: throw new Error(name + ': escolha uma opção válida.');

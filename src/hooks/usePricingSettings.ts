@@ -4,7 +4,7 @@ import { useFocusEffect } from 'expo-router';
 import { useAuthContext } from '../contexts/AuthContext';
 import * as Repository from '../database/pricingSettingsRepository';
 import { LaborMode, PricingSettings, PaymentDrafts } from '../types/pricingSettings';
-import { parseFees, parseLabor } from '../utils/pricingInputs';
+import { parseFees, parseLabor, parseMargin } from '../utils/pricingInputs';
 
 export function usePricingSettings(loadOnFocus = true, refreshOnSync = false) {
   const { user } = useAuthContext();
@@ -43,11 +43,7 @@ export function usePricingSettings(loadOnFocus = true, refreshOnSync = false) {
 
   const saveMargin = useCallback(async (value: string) => {
     if (!userId) throw new Error('Faça login para configurar a margem.');
-    const trimmed = value.trim();
-    if (trimmed && !/^\d+(?:[,.]\d{1,2})?$/.test(trimmed)) throw new Error('Informe uma margem com até duas casas decimais.');
-    const bps = trimmed ? Math.round(Number(trimmed.replace(',', '.')) * 100) : null;
-    if (bps !== null && (!Number.isSafeInteger(bps) || bps < 0 || bps >= 10000)) throw new Error('A margem deve estar entre 0% e 99,99%.');
-    await Repository.saveProfitMargin(userId, bps);
+    await Repository.saveProfitMargin(userId, parseMargin(value));
   }, [userId]);
 
   const saveNoFixedExpenses = useCallback(async (confirmed: boolean) => {

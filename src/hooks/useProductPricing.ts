@@ -73,7 +73,7 @@ export function useProductPricing(id: string) {
     }
   }
 
-  return { product, loading: loadingAll, error: loadError, marginText, setOverride, margin, result, override,
+  return { product, loading: loadingAll, error: loadError, marginText, setOverride, margin, result, override, defaultMargin: financial.settings?.marginBps ?? null,
     mode, setMode, manualPrice, setManualPrice, manualPriceError, selectedPayment, setManualPayment, manualFee, manual, saving, canSave, saveHistory };
 
 }

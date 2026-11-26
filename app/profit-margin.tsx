@@ -11,9 +11,11 @@ import { usePricingSettings } from '../src/hooks/usePricingSettings';
 import { centsToInput, formatCurrency } from '../src/utils/currency';
 import { parseMargin } from '../src/utils/pricingInputs';
 import { basePriceForMargin } from '../src/utils/pricing';
+import { CostProfitBar } from '../src/components/PricingDisplay';
 
 const PRESETS = [10, 20, 30, 40, 50];
 const EXAMPLE_COST = 10000;
+const EXAMPLE_LABOR = 5000;
 const SLIDER_MAX = 90;
 
 export default function ProfitMarginScreen() {
@@ -39,7 +41,6 @@ export default function ProfitMarginScreen() {
   const marginBps = defined ? draftBps : null;
   const sale = basePriceForMargin(EXAMPLE_COST, marginBps);
   const profit = sale === null ? null : sale - EXAMPLE_COST;
-  const costShare = sale === null ? 100 : EXAMPLE_COST / sale * 100;
 
   function changeValue(next: string) {
     setValue(next);
@@ -120,25 +121,12 @@ export default function ProfitMarginScreen() {
                 <Ionicons name="bulb-outline" size={21} color="#4f46e5" />
                 <Text className="font-semibold text-gray-800">Veja como funciona</Text>
               </View>
-              <Text className="text-gray-600 text-sm leading-5 mb-3">Imagine um produto que custa R$ 100,00 para produzir.</Text>
+              <Text className="text-gray-600 text-sm leading-5 mb-3">Imagine um produto com R$ 50,00 em materiais e despesas e R$ 50,00 de mão de obra.</Text>
               <View className="bg-indigo-50 rounded-xl p-3 mb-4">
                 <Text className="text-indigo-800 text-sm">Preço sugerido de venda</Text>
                 <Text className="text-2xl font-bold text-indigo-700 mt-1">{formatCurrency(sale)}</Text>
               </View>
-              <View accessible accessibilityLabel={'Custo de produção: ' + formatCurrency(EXAMPLE_COST) + '; lucro: ' + formatCurrency(profit)} className="flex-row h-3.5 rounded-full overflow-hidden mb-3">
-                <View style={{ flex: costShare, backgroundColor: '#9ca3af' }} />
-                {profit > 0 && <View style={{ flex: 100 - costShare, backgroundColor: '#22c55e' }} />}
-              </View>
-              <View className="flex-row items-center gap-2 mb-2">
-                <View className="w-2.5 h-2.5 rounded-sm bg-gray-400" />
-                <Text className="flex-1 text-gray-600 text-sm">Custo de produção</Text>
-                <Text className="text-gray-800 font-medium">{formatCurrency(EXAMPLE_COST)}</Text>
-              </View>
-              <View className="flex-row items-center gap-2">
-                <View className="w-2.5 h-2.5 rounded-sm bg-green-500" />
-                <Text className="flex-1 text-gray-600 text-sm">Seu lucro</Text>
-                <Text className="text-green-700 font-semibold">{formatCurrency(profit)}</Text>
-              </View>
+              <CostProfitBar cost={EXAMPLE_COST} labor={EXAMPLE_LABOR} profit={profit} />
               <Text className="text-gray-500 text-xs mt-3">Exemplo sem taxas de pagamento.</Text>
             </View>
           )}

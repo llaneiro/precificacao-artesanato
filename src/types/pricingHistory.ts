@@ -48,6 +48,8 @@ export interface PricingHistorySummary {
   salePriceCents: number;
   profitCents: number;
   createdAt: string;
+  formulaVersion?: 1 | 2 | null;
+  savedMarginPercent?: number | null;
 }
 
 export interface PricingHistoryRecord extends PricingHistorySummary {

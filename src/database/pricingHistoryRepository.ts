@@ -16,9 +16,13 @@ export async function createPricingHistory(userId: string, snapshot: PricingSnap
   return result.lastInsertRowId;
 }
 
-export async function getPricingHistory(userId: string, productId?: number): Promise<PricingHistorySummary[]> {
+export async function getPricingHistory(userId: string, productId?: number, includeSavedMargin = false): Promise<PricingHistorySummary[]> {
   const db = await getDatabase();
-  const query = 'SELECT ' + SUMMARY + ' FROM pricing_history WHERE userId = ?';
+  // Lê somente os campos necessários do snapshot, sem recalcular margens antigas.
+  const metadata = includeSavedMargin
+    ? ", CASE WHEN json_valid(snapshot) THEN json_extract(snapshot, '$.version') END AS formulaVersion, CASE WHEN json_valid(snapshot) THEN json_extract(snapshot, '$.scenarios[0].marginPercent') END AS savedMarginPercent"
+    : '';
+  const query = 'SELECT ' + SUMMARY + metadata + ' FROM pricing_history WHERE userId = ?';
   const order = ' ORDER BY createdAt DESC, id DESC';
   return productId === undefined
     ? db.getAllAsync<PricingHistorySummary>(query + order, userId)

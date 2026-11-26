@@ -7,18 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { usePricingHistory } from '../src/hooks/usePricingHistory';
 import type { PricingHistoryRecord } from '../src/types/pricingHistory';
 import { formatCurrency } from '../src/utils/currency';
-
-function Detail({ label, value }: { label: string; value: string }) {
-  return <View className="flex-row items-center justify-between py-2 gap-3">
-    <Text className="text-gray-600 flex-1">{label}</Text><Text className="font-semibold text-gray-800 text-right flex-shrink">{value}</Text>
-  </View>;
-}
-
-function percent(value: number | null) {
-  if (value === null) return '—';
-  if (value !== 0 && Math.abs(value) < 0.01) return (value < 0 ? '−' : '') + 'menos de 0,01%';
-  return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
-}
+import { formatProductionDuration } from '../src/utils/productCatalog';
+import { money, percent, PricingRow as Detail, PricingSection, SuggestedResult, PaymentPriceRow, outcomeLabel, outcomeColor, CostProfitBar } from '../src/components/PricingDisplay';
 
 export default function PricingHistoryDetailsScreen() {
   const router = useRouter();
@@ -31,6 +21,7 @@ export default function PricingHistoryDetailsScreen() {
   const busy = useRef(false);
   const [retry, setRetry] = useState(0);
   const [expanded, setExpanded] = useState(false);
+  const [costExpanded, setCostExpanded] = useState(false);
   useFocusEffect(useCallback(() => {
     let active = true;
     setLoading(true); setError(''); setRecord(null);
@@ -60,59 +51,49 @@ export default function PricingHistoryDetailsScreen() {
     <Stack.Screen options={{ title: 'Precificação salva', headerRight: () => <View style={{ marginRight: 16 }}><Pressable accessibilityRole="button" accessibilityLabel="Excluir registro" disabled={!record || deleting || loading} onPress={confirmDelete} className="w-11 h-11 items-center justify-center"><Ionicons name="trash-outline" size={23} color="#fff" /></Pressable></View> }} />
     {loading ? <ActivityIndicator color="#4f46e5" className="mt-8" /> : !record || !snapshot ?
       <View className="p-4"><Text className="text-gray-600">{error || 'Registro não encontrado.'}</Text>{!!error && <Pressable onPress={() => setRetry(v => v + 1)} className="py-3"><Text className="text-indigo-700 font-semibold">Tentar novamente</Text></Pressable>}</View> :
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
         <Text className="text-2xl font-bold text-gray-800">{record.productName}</Text>
         <Text className="text-gray-500 text-sm mt-1">{new Date(record.createdAt).toLocaleString('pt-BR')} · {record.mode === 'suggested' ? 'Preço sugerido' : 'Preço manual'}</Text>
-        <View className="bg-indigo-50 rounded-xl p-4 my-4">
-          <HelpLabel title="Valores da data do cálculo" message="O registro não muda quando você altera materiais ou configurações. É uma simulação, não uma venda." className="font-semibold text-indigo-800" />
+        <View className="flex-row items-center gap-1 mb-3">
+          <HelpLabel title="Valores da data do cálculo" message="O registro não muda quando você altera materiais ou configurações. É uma simulação, não uma venda." className="text-gray-500 text-xs" />
         </View>
-        {!(snapshot.mode === 'suggested' && snapshot.version === 2) && <>
-        <Text className="text-lg font-bold text-gray-800 mb-2">Custos de produção</Text>
-        <View className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
-          <Detail label="Materiais" value={formatCurrency(snapshot.costs.materials)} />
-          <Detail label="Despesas adicionais" value={formatCurrency(snapshot.costs.additional)} />
-          <Detail label="Mão de obra" value={formatCurrency(snapshot.costs.labor)} />
-          <Detail label="Despesas fixas (rateio)" value={formatCurrency(snapshot.costs.fixed)} />
-          <View className="border-t border-gray-100 mt-2"><Detail label="Custo total" value={formatCurrency(snapshot.costs.total)} /></View>
-          <Detail label="Tempo de produção" value={Math.floor(snapshot.productionMinutes / 60) + 'h ' + snapshot.productionMinutes % 60 + 'min'} />
-        </View>
-        </>}
-        <Text className="text-lg font-bold text-gray-800 mb-2">{record.mode === 'suggested' ? 'Preços calculados' : 'Resultado da simulação'}</Text>
-        {snapshot.targetMarginBps !== null && <Text className="text-gray-600 mb-3">Margem desejada: {percent(snapshot.targetMarginBps / 100)}</Text>}
+        <PricingSection title="Custo de produção" value={money(snapshot.costs.total)} expanded={costExpanded} onToggle={() => setCostExpanded(v => !v)}>
+          <Detail label="Materiais" value={money(snapshot.costs.materials)} />
+          <Detail label="Mão de obra" value={money(snapshot.costs.labor)} />
+          <Detail label="Despesas fixas (rateio)" value={money(snapshot.costs.fixed)} />
+          <Detail label="Despesas adicionais" value={money(snapshot.costs.additional)} />
+          <Detail label="Tempo de produção" value={formatProductionDuration(snapshot.productionMinutes)} />
+        </PricingSection>
+        {snapshot.targetMarginBps !== null && <Text className="text-gray-600 text-sm mb-3">Margem desejada: {percent(snapshot.targetMarginBps / 100)}</Text>}
         {snapshot.version === 1 && <View className="bg-amber-50 rounded-xl p-3 mb-3">
           <Text className="text-amber-900 text-sm">Fórmula anterior: margem sobre o bruto. Refaça o cálculo para usar a fórmula atual.</Text>
         </View>}
         {snapshot.mode === 'suggested' && snapshot.version === 2 ? <>
-          <View className="bg-indigo-50 rounded-xl p-4 mb-4">
-            <Text className="text-gray-600">Preço base (valor líquido)</Text>
-            <Text className="text-3xl font-bold text-indigo-700 mt-1 mb-3">{formatCurrency(snapshot.scenarios[0].salePriceCents)}</Text>
-            <Detail label="Custo total" value={formatCurrency(snapshot.costs.total)} />
-            <Detail label="Lucro estimado" value={formatCurrency(snapshot.scenarios[0].profitCents)} />
-            <Detail label="Margem sobre o líquido" value={percent(snapshot.scenarios[0].marginPercent)} />
-            <Detail label="Preço mínimo sem taxa" value={formatCurrency(snapshot.costs.total)} />
-          </View>
+          <SuggestedResult base={snapshot.scenarios[0].salePriceCents} total={snapshot.costs.total} labor={snapshot.costs.labor} profit={snapshot.scenarios[0].profitCents} />
+          <Text className="text-gray-600 text-sm mb-3">Margem efetiva sobre o líquido: {percent(snapshot.scenarios[0].marginPercent)}</Text>
           {snapshot.scenarios.length > 1 && <>
-            <HelpLabel title="Preço por pagamento" message="As taxas foram acrescentadas ao preço para manter o mesmo lucro líquido." className="text-lg font-bold text-gray-800" />
-            <View className="bg-white border border-gray-200 rounded-xl px-4 mb-3">
-              {snapshot.scenarios.slice(1).map((scenario, i) => <View key={scenario.key} className={'py-3 ' + (i ? 'border-t border-gray-100' : '')}>
-                <View className="flex-row justify-between items-center gap-3"><Text className="font-semibold text-gray-800 flex-1">{scenario.name}</Text><Text className="font-bold text-indigo-700">{formatCurrency(scenario.salePriceCents)}</Text></View>
-                <Text className="text-gray-500 text-sm mt-1">{scenario.feeBps === 0 ? 'Sem cobrança de taxa' : 'Taxa: ' + percent(scenario.feeBps / 100)}</Text>
-              </View>)}
+            <HelpLabel title="Preços por pagamento" message="As taxas foram acrescentadas ao preço para manter o mesmo lucro líquido." className="text-lg font-bold text-gray-800" />
+            <View className="bg-white border border-gray-200 rounded-2xl overflow-hidden mb-4">
+              {snapshot.scenarios.slice(1).map((scenario, i) => <PaymentPriceRow key={scenario.key} first={i === 0} name={scenario.name} method={scenario.key} price={scenario.salePriceCents}
+                subtitle={scenario.feeBps === 0 ? 'Sem taxa' : 'Taxa de ' + percent(scenario.feeBps / 100)} />)}
             </View>
-
           </>}
         </> : <>
-        {snapshot.scenarios.map(scenario => <View key={scenario.key} className="bg-white border border-gray-200 rounded-xl p-4 mb-3">
-          <Text className="font-semibold text-gray-700">{scenario.name}</Text>
-          <Text className="text-2xl font-bold text-indigo-700 mt-1 mb-2">{formatCurrency(scenario.salePriceCents)}</Text>
-          <Detail label={'Taxa (' + percent(scenario.feeBps / 100) + ')'} value={formatCurrency(scenario.feeCents)} />
-          <Detail label="Valor líquido" value={formatCurrency(scenario.netCents)} />
-          <View className="border-t border-gray-100 mt-2 pt-2">
-            <Text className={'font-bold ' + (scenario.profitCents < 0 ? 'text-red-700' : scenario.profitCents > 0 ? 'text-green-700' : 'text-gray-800')}>{scenario.profitCents < 0 ? 'Prejuízo estimado' : scenario.profitCents === 0 ? 'Ponto de equilíbrio' : 'Lucro estimado'}: {formatCurrency(scenario.profitCents)}</Text>
-            <Detail label={snapshot.version === 1 ? "Margem sobre o bruto" : "Margem sobre o líquido"} value={percent(scenario.marginPercent)} />
-            <Detail label="Preço mínimo" value={scenario.minimumPriceCents === null ? '—' : formatCurrency(scenario.minimumPriceCents)} />
-          </View>
-        </View>)}
+          <Text className="text-lg font-bold text-gray-800 mb-3">{snapshot.mode === 'manual' ? 'Resultado da simulação' : 'Preços registrados'}</Text>
+          {snapshot.scenarios.map(scenario => <View key={scenario.key} className="bg-white border border-gray-200 rounded-2xl p-4 mb-3">
+            <Text className="font-semibold text-gray-800">{scenario.name}</Text>
+            <Text className="text-gray-500 text-xs mt-2">{snapshot.mode === 'manual' ? 'Preço informado' : 'Preço registrado'}</Text>
+            <Text className="text-2xl font-bold text-indigo-700 mt-1">{money(scenario.salePriceCents)}</Text>
+            <View className="border-t border-gray-100 mt-3 pt-2">
+              <Text className="text-gray-500 text-sm">{outcomeLabel(scenario.profitCents)}</Text>
+              <Text className={'text-2xl font-bold mt-1 mb-2 ' + outcomeColor(scenario.profitCents)}>{money(Math.abs(scenario.profitCents))}</Text>
+              <CostProfitBar cost={snapshot.costs.total} labor={snapshot.costs.labor} profit={scenario.profitCents} />
+              <Detail label={snapshot.version === 1 ? 'Margem sobre o bruto' : 'Margem sobre o líquido'} value={percent(scenario.marginPercent)} />
+              <Detail label={'Taxa (' + percent(scenario.feeBps / 100) + ')'} value={money(scenario.feeCents)} />
+              <Detail label="Valor líquido recebido" value={money(scenario.netCents)} />
+              <Detail label="Preço mínimo" value={money(scenario.minimumPriceCents)} />
+            </View>
+          </View>)}
         </>}
         {snapshot.unavailablePayments.length > 0 && <View className="bg-amber-50 rounded-xl p-4 mb-4">
           <Text className="font-semibold text-amber-900">Formas não calculadas na época</Text>
@@ -123,12 +104,6 @@ export default function PricingHistoryDetailsScreen() {
             <Text className="font-semibold text-gray-800 flex-1">Dados utilizados no cálculo</Text><Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={20} color="#4f46e5" />
           </Pressable>
           {expanded && <View className="px-4 pb-4">
-            <Text className="font-bold text-gray-700 mb-2">Custos de produção</Text>
-            <Detail label="Materiais" value={formatCurrency(snapshot.costs.materials)} />
-            <Detail label="Despesas adicionais" value={formatCurrency(snapshot.costs.additional)} />
-            <Detail label="Mão de obra" value={formatCurrency(snapshot.costs.labor)} />
-            <Detail label="Despesas fixas (rateio)" value={formatCurrency(snapshot.costs.fixed)} />
-            <Detail label="Tempo de produção" value={Math.floor(snapshot.productionMinutes / 60) + 'h ' + snapshot.productionMinutes % 60 + 'min'} />
             <Text className="font-bold text-gray-700 mt-4 mb-2">Materiais</Text>
             {snapshot.materials.map(material => <View key={material.materialId} className="border-b border-gray-100 py-2">
               <Text className="font-semibold text-gray-800">{material.name}</Text>

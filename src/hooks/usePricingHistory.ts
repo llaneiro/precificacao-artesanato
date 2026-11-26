@@ -18,7 +18,7 @@ export function usePricingHistory(productId?: number, loadOnFocus = true) {
     setError(null);
     try {
       if (productId !== undefined && (!Number.isSafeInteger(productId) || productId <= 0)) throw new Error('Produto inválido.');
-      setRecords(userId ? await Repository.getPricingHistory(userId, productId) : []);
+      setRecords(userId ? await Repository.getPricingHistory(userId, productId, true) : []);
     } catch { setRecords([]); setError('Não foi possível carregar o histórico.'); }
     finally { setLoading(false); }
   }, [userId, productId]);

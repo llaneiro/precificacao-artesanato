@@ -4,6 +4,16 @@ Aplicativo mobile de precificação voltado para artesãos e pequenos empreended
 
 `React Native` · `Expo` · `TypeScript` · `SQLite` · `Firebase`
 
+## Instalação rápida (Android)
+
+O aplicativo compilado para Android é distribuído pela seção [Releases do GitHub](https://github.com/llaneiro/precificacao-artesanato/releases).
+
+1. Acesse a release e baixe o arquivo APK.
+2. Abra o arquivo no dispositivo Android e autorize a instalação dessa fonte, caso solicitado.
+3. Instale o aplicativo e crie sua conta ou entre com uma conta existente.
+
+A versão compilada não exige Expo Go, Node.js ou configuração manual do Firebase. Para iOS ou execução a partir do código-fonte, consulte a seção [Como executar localmente](#como-executar-localmente).
+
 ## Sobre o projeto
 
 O Precifica Arte surgiu da necessidade de facilitar a definição de preços de produtos artesanais, considerando não apenas os materiais utilizados, mas também o tempo de produção, as despesas do negócio e a remuneração do artesão.

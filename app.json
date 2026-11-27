@@ -19,7 +19,8 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.llaneir0.precificacaoartesanal"
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -32,6 +33,16 @@
       "expo-web-browser",
       "expo-font"
     ],
-    "scheme": "precificacao-artesanal"
+    "scheme": "precificacao-artesanal",
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "1c49ab2c-412f-418f-81e7-44a3e0108051"
+      }
+    }
   }
 }

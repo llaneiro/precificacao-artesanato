@@ -1,6 +1,7 @@
+import { MoneyInput } from './MoneyInput';
 import { useState } from 'react';
 import { HelpLabel } from './HelpTip';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useProductPricing } from '../hooks/useProductPricing';
 import { money, percent, outcomeLabel, outcomeColor, PricingRow, CostProfitBar } from './PricingDisplay';
@@ -21,8 +22,8 @@ export function ManualPricingPanel({ form, onConfigurePayments }: {
       <Text className="font-semibold text-gray-800 text-base mb-2">Por quanto deseja vender?</Text>
       <View className="flex-row items-center rounded-xl border border-gray-300 px-3 bg-white">
         <Text className="text-gray-500 font-semibold mr-2">R$</Text>
-        <TextInput accessibilityLabel="Preço de venda manual em reais" className="flex-1 text-xl font-bold text-gray-800 py-3" value={form.manualPrice}
-          onChangeText={form.setManualPrice} placeholder="0,00" placeholderTextColor="#9ca3af" keyboardType="decimal-pad" editable={!form.saving} />
+        <MoneyInput accessibilityLabel="Preço de venda manual em reais" className="flex-1 text-xl font-bold text-gray-800 py-3" value={form.manualPrice}
+          onChangeText={form.setManualPrice} placeholder="0,00" placeholderTextColor="#9ca3af" editable={!form.saving} />
       </View>
       {!!form.manualPriceError && <Text accessibilityRole="alert" className="text-red-600 text-sm mt-2">{form.manualPriceError}</Text>}
       <View className="border-t border-gray-100 mt-4 pt-1">

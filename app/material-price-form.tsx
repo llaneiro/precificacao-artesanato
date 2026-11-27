@@ -1,3 +1,4 @@
+import { MoneyInput } from '../src/components/MoneyInput';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Text, TextInput, Pressable, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -71,7 +72,7 @@ export default function MaterialPriceForm() {
           <Text className="text-indigo-700">/ {formatReferenceQuantity(material.quantity, material.unit)}</Text>
         </View>
         <HelpLabel title="Novo preço (R$)" message="Informe o valor da nova referência. Se o preço continuar igual, salve para registrar a conferência." />
-        <TextInput className={inputClass} value={cost} onChangeText={v => { setCost(v); setError(''); }} keyboardType="decimal-pad" editable={!saving} />
+        <MoneyInput className={inputClass} value={cost} onChangeText={v => { setCost(v); setError(''); }} editable={!saving} />
         <Text className="text-gray-700 font-semibold mb-2">Quantidade comprada</Text>
         <View className="flex-row items-center gap-2">
           <TextInput className={inputClass + ' flex-1'} value={quantity} onChangeText={v => { setQuantity(v); setError(''); }} keyboardType="decimal-pad" editable={!saving} />

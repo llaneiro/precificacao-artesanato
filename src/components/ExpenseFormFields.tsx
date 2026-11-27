@@ -1,3 +1,4 @@
+import { MoneyInput } from './MoneyInput';
 import { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,7 +26,7 @@ export function ExpenseFormFields({ name, cost, description, onNameChange, onCos
       <Text className="text-gray-700 font-semibold mb-2">Nome da despesa</Text>
       <TextInput accessibilityLabel="Nome da despesa" className={inputClass} value={name} onChangeText={onNameChange} placeholder={namePlaceholder} editable={!saving} />
       <HelpLabel title={costLabel} message={costHelp} className="text-gray-700 font-semibold" />
-      <TextInput accessibilityLabel={costLabel} className={inputClass} value={cost} onChangeText={onCostChange} placeholder={costPlaceholder} keyboardType="decimal-pad" editable={!saving} />
+      <MoneyInput accessibilityLabel={costLabel} className={inputClass} value={cost} onChangeText={onCostChange} placeholder={costPlaceholder} editable={!saving} />
       <Pressable accessibilityRole="button" accessibilityState={{ expanded: descriptionExpanded, disabled: saving }} disabled={saving}
         onPress={() => setDescriptionOverride(!descriptionExpanded)} className="flex-row items-center gap-2 min-h-12">
         <Ionicons name={descriptionExpanded ? 'remove-circle-outline' : 'add-circle-outline'} size={20} color="#4f46e5" />

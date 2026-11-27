@@ -1,3 +1,4 @@
+import { MoneyInput } from '../src/components/MoneyInput';
 import { HelpTip } from '../src/components/HelpTip';
 import { useEffect, useState } from 'react';
 import { HeaderSaveButton } from '../src/components/HeaderSaveButton';
@@ -56,7 +57,7 @@ export default function LaborSettingsScreen() {
               ))}
             </View>
             <Text className="text-gray-700 font-semibold mb-2">{form.mode === 'hourly' ? 'Valor da hora (R$)' : 'Valor mensal (R$)'}</Text>
-            <TextInput accessibilityLabel={form.mode === 'hourly' ? 'Valor da hora em reais' : 'Remuneração mensal em reais'} className={inputClass} value={form.mode === 'hourly' ? form.hourly : form.monthly} onChangeText={form.mode === 'hourly' ? form.setHourly : form.setMonthly} keyboardType="decimal-pad" placeholder={form.mode === 'hourly' ? 'Ex.: 20,00' : 'Ex.: 2400,00'} editable={!form.saving} />
+            <MoneyInput accessibilityLabel={form.mode === 'hourly' ? 'Valor da hora em reais' : 'Remuneração mensal em reais'} className={inputClass} value={form.mode === 'hourly' ? form.hourly : form.monthly} onChangeText={form.mode === 'hourly' ? form.setHourly : form.setMonthly} placeholder={form.mode === 'hourly' ? 'Ex.: 20,00' : 'Ex.: 2400,00'} editable={!form.saving} />
           </View>
           <View className="flex-row items-center justify-between mb-2">
             <Text accessibilityRole="header" className="flex-1 text-xl font-bold text-gray-900">Tempo de produção</Text>

@@ -1,3 +1,4 @@
+import { MoneyInput } from '../src/components/MoneyInput';
 import { HelpLabel } from '../src/components/HelpTip';
 import { useEffect } from 'react';
 import { HeaderSaveButton } from '../src/components/HeaderSaveButton';
@@ -35,7 +36,7 @@ export default function MaterialFormScreen() {
           <MeasureCategorySelect unit={fields.unit} onChange={v => setField('unit', v)} disabled={saving} />
           <Text className="text-lg font-bold text-gray-800 mb-2">Referência de compra</Text>
           <HelpLabel title="Preço pago (R$)" message="Informe o preço pago pela quantidade comprada. Ex.: R$ 30 por 600 g." />
-          <TextInput className={inputClass} value={fields.cost} onChangeText={v => setField('cost', v)} placeholder="Ex.: 30,00" keyboardType="decimal-pad" editable={!saving} />
+          <MoneyInput className={inputClass} value={fields.cost} onChangeText={v => setField('cost', v)} placeholder="Ex.: 30,00" editable={!saving} />
           <Text className="text-gray-700 font-semibold mb-2">Quantidade comprada</Text>
           <View className="flex-row gap-2 items-center">
             <TextInput className={inputClass + ' flex-1'} value={fields.quantity} onChangeText={v => setField('quantity', v)} placeholder="Ex.: 600" keyboardType="decimal-pad" editable={!saving} />

@@ -1,3 +1,4 @@
+import { formatNumber } from '../utils/numberDisplay';
 import type { ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,7 +10,7 @@ export const money = (value: number | null) => value === null ? '—' : formatCu
 export function percent(value: number | null) {
   if (value === null || !Number.isFinite(value)) return '—';
   if (value !== 0 && Math.abs(value) < 0.01) return (value < 0 ? '−' : '') + 'menos de 0,01%';
-  return value.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '%';
+  return formatNumber(value) + '%';
 }
 export const outcomeLabel = (profit: number) => profit < 0 ? 'Prejuízo estimado' : profit === 0 ? 'Ponto de equilíbrio' : 'Lucro estimado';
 export const outcomeColor = (profit: number) => profit < 0 ? 'text-red-700' : profit === 0 ? 'text-gray-800' : 'text-green-700';

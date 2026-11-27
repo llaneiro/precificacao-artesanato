@@ -22,7 +22,7 @@ export default function TabsLayout() {
       tabBarLabelStyle: { fontSize: 12 },
       animation: 'none',
     }} backBehavior="initialRoute">
-      <Tabs.Screen name="index" options={{ title: 'Precificação Artesanal', tabBarLabel: 'Início', tabBarIcon: tabIcon('home', 'home-outline') }} />
+      <Tabs.Screen name="index" options={{ title: 'Precifica Arte', tabBarLabel: 'Início', tabBarIcon: tabIcon('home', 'home-outline') }} />
       <Tabs.Screen name="products" options={{ title: 'Produtos', tabBarIcon: tabIcon('cube', 'cube-outline') }} />
       <Tabs.Screen name="materials" options={{ title: 'Materiais', tabBarIcon: tabIcon('layers', 'layers-outline') }} />
       <Tabs.Screen name="expenses" options={{ title: 'Central financeira', tabBarLabel: 'Financeiro', tabBarIcon: tabIcon('wallet', 'wallet-outline') }} />

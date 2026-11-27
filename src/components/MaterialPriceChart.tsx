@@ -1,3 +1,4 @@
+import { formatNumber } from '../utils/numberDisplay';
 import { useState } from 'react';
 import { View, Text } from 'react-native';
 import Slider from '@react-native-community/slider';
@@ -17,7 +18,7 @@ function Variation({ title, value }: { title: string; value: number | null }) {
   const label = value === null ? 'Sem comparação' : value > 0 ? 'Aumento no custo' : value < 0 ? 'Redução no custo' : 'Sem variação';
   return <View className={'flex-1 min-w-[115px] p-3 rounded-xl ' + background}>
     <Text className="text-gray-600 text-xs">{title}</Text>
-    <Text className={'font-bold text-lg mt-1 ' + color}>{value === null ? '—' : (value > 0 ? '+' : '') + value.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '%'}</Text>
+    <Text className={'font-bold text-lg mt-1 ' + color}>{value === null ? '—' : (value > 0 ? '+' : '') + formatNumber(value) + '%'}</Text>
     <Text className={'text-xs mt-1 ' + color}>{label}</Text>
   </View>;
 }

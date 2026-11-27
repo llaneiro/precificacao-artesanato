@@ -1,4 +1,5 @@
 import { convertQuantity, measureCategory, type MaterialUnit } from '../types/material';
+import { formatReal } from './currency';
 import type { MaterialCostHistoryRecord } from '../types/materialCostHistory';
 
 export function comparisonUnit(unit: string): MaterialUnit | null {
@@ -40,7 +41,5 @@ export function materialPriceTrend(records: MaterialCostHistoryRecord[], unit: s
 }
 
 export function formatEquivalentPrice(value: number | null) {
-  if (value === null) return '—';
-  if (value > 0 && value < 0.000001) return '< R$ 0,000001';
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 6 });
+  return value === null ? '—' : formatReal(value);
 }

@@ -8,7 +8,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
 import { useProductForm } from '../src/hooks/useProductForm';
-import { formatCurrency } from '../src/utils/currency';
+import { formatCurrency, formatReal } from '../src/utils/currency';
 
 export default function ProductFormScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -76,7 +76,7 @@ export default function ProductFormScreen() {
                   <TextInput className={inputClass + ' flex-1'} value={selection.quantity} onChangeText={v => form.changeQuantity(selection.materialId, v)} keyboardType="decimal-pad" placeholder="Ex.: 250" editable={!form.saving} />
                   <CompactUnitSelect value={selection.usageUnit} units={compatibleUnits(material?.unit ?? '')} onChange={v => form.changeUsageUnit(selection.materialId, v)} disabled={form.saving} />
                 </View>
-                {cost !== null && <Text className="text-gray-600">Custo estimado: {cost.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</Text>}
+                {cost !== null && <Text className="text-gray-600">Custo estimado: {formatReal(cost)}</Text>}
               </View>
             );
           })}
@@ -119,7 +119,7 @@ export default function ProductFormScreen() {
           </View>}
           <View className="bg-indigo-50 rounded-xl p-4 mb-4">
             <HelpLabel title="Custo dos materiais" message="Mão de obra, despesas fixas, taxas e lucro entram na precificação." className="text-gray-600" />
-            <Text className="text-xl text-indigo-700 font-bold">{form.totalCostCents === null ? '—' : (form.totalCostCents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</Text>
+            <Text className="text-xl text-indigo-700 font-bold">{form.totalCostCents === null ? '—' : formatCurrency(form.totalCostCents)}</Text>
             <Text className="text-gray-600 mt-3">Despesas adicionais</Text>
             <Text className="text-indigo-700 font-bold">{form.additionalCostCents === null ? '—' : formatCurrency(form.additionalCostCents)}</Text>
 

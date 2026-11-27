@@ -1,3 +1,4 @@
+import { formatNumber } from '../src/utils/numberDisplay';
 import { MoneyInput } from '../src/components/MoneyInput';
 import { HelpTip } from '../src/components/HelpTip';
 import { useEffect, useState } from 'react';
@@ -13,7 +14,7 @@ import { formatCurrency } from '../src/utils/currency';
 import { estimateProductiveHours, REFERENCE_DAYS, REFERENCE_DAILY_HOURS } from '../src/utils/workingHours';
 
 const DAYS = [1, 2, 3, 4, 5, 6, 7];
-const formatHours = (value: number) => value.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+const formatHours = formatNumber;
 
 export default function LaborSettingsScreen() {
   const router = useRouter();

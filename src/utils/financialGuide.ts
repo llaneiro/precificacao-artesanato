@@ -1,3 +1,4 @@
+import { formatNumber } from './numberDisplay';
 import type { Expense } from '../types/expense';
 import type { PricingSettings } from '../types/pricingSettings';
 import { hourlyRate, countConfiguredPayments } from '../types/pricingSettings';
@@ -51,7 +52,7 @@ export function financialGuide(settings: PricingSettings | null, expenses: Expen
       description: 'Escolha a porcentagem que deseja ter de lucro sobre o valor líquido da venda, depois de cobrir todos os custos, inclusive sua mão de obra.',
       example: 'A margem padrão pode ser ajustada em cada precificação. Você também pode deixar essa escolha para depois.',
       done: settings?.marginBps != null,
-      summary: settings?.marginBps == null ? 'Ainda não definida' : (settings.marginBps / 100).toLocaleString('pt-BR') + '%',
+      summary: settings?.marginBps == null ? 'Ainda não definida' : formatNumber(settings.marginBps / 100) + '%',
       optional: true,
     },
   ] as const;

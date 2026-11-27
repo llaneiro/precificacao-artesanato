@@ -1,3 +1,4 @@
+import { formatNumber } from '../src/utils/numberDisplay';
 import { useSyncStatus } from '../src/contexts/SyncContext';
 import { OptionsMenu } from '../src/components/OptionsMenu';
 import { useCallback, useState, useRef, type ReactNode } from 'react';
@@ -150,7 +151,7 @@ export default function ProductDetailsScreen() {
               {!product.materials.length && <Text className="text-gray-500 text-sm px-4 py-3 border-t border-gray-100">Nenhum material cadastrado.</Text>}
               {product.materials.map(material => (
                 <CompositionRow key={material.materialId} name={material.name}
-                  quantity={material.quantityUsed.toLocaleString('pt-BR', { maximumFractionDigits: 20 }) + ' ' + (material.usageUnit ?? material.unit)} />
+                  quantity={formatNumber(material.quantityUsed) + ' ' + (material.usageUnit ?? material.unit)} />
               ))}
             </CompositionSection>
             {!!product.additionalExpenses.length && (
@@ -158,7 +159,7 @@ export default function ProductDetailsScreen() {
                 summary={product.additionalExpenses.length + (product.additionalExpenses.length === 1 ? ' despesa' : ' despesas')}
                 expanded={expensesExpanded} onToggle={() => setExpensesExpanded(value => !value)}>
                 {product.additionalExpenses.map(expense => (
-                  <CompositionRow key={expense.expenseId} name={expense.name} quantity={expense.quantity.toLocaleString('pt-BR') + ' un'} />
+                  <CompositionRow key={expense.expenseId} name={expense.name} quantity={formatNumber(expense.quantity) + ' un'} />
                 ))}
               </CompositionSection>
             )}

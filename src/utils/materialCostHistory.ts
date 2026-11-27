@@ -1,3 +1,5 @@
+import { formatReal } from './currency';
+import { formatNumber } from './numberDisplay';
 import type { MaterialCostHistoryRecord } from '../types/materialCostHistory';
 
 const units: Record<string, { group: string; factor: number }> = {
@@ -19,12 +21,11 @@ export function materialCostVariation(record: MaterialCostHistoryRecord): number
 }
 
 export function formatReferenceQuantity(quantity: number, unit: string): string {
-  return quantity.toLocaleString('pt-BR', { maximumFractionDigits: 10 }) + ' ' + unit;
+  return formatNumber(quantity) + ' ' + unit;
 }
 
 export function formatUnitCost(costCents: number, quantity: number, unit: string): string {
   const value = costCents / 100 / quantity;
   if (!Number.isFinite(value)) return '—';
-  if (value > 0 && value < 0.000001) return '< R$ 0,000001 / ' + unit;
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 6 }) + ' / ' + unit;
+  return formatReal(value) + ' / ' + unit;
 }

@@ -18,6 +18,17 @@ export function centsToInput(cents: number): string {
   return Math.floor(cents / 100) + ',' + String(cents % 100).padStart(2, '0');
 }
 
+const currencyFormatter = new Intl.NumberFormat('pt-BR', {
+  style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2,
+});
+
+// Recebe reais, inclusive custos unitários fracionários. Não altera o cálculo.
+export function formatReal(value: number): string {
+  if (!Number.isFinite(value)) return '—';
+  if (value !== 0 && Math.abs(value) < 0.01) return (value < 0 ? '−' : '') + '< R$ 0,01';
+  return currencyFormatter.format(value);
+}
+
 export function formatCurrency(cents: number): string {
-  return (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  return formatReal(cents / 100);
 }

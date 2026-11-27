@@ -33,7 +33,7 @@ async function openReference(url: string) {
 }
 
 export default function AboutScreen() {
-  const name = Constants.expoConfig?.name ?? 'Precificação Artesanal';
+  const name = Constants.expoConfig?.name ?? 'Precifica Arte';
   const version = Constants.expoConfig?.version ?? '1.0.0';
   return (
     <SafeAreaView edges={['left', 'right', 'bottom']} className="flex-1 bg-gray-50">

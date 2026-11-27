@@ -1,3 +1,4 @@
+import { formatNumber } from '../utils/numberDisplay';
 import { Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatCurrency } from '../utils/currency';
@@ -17,7 +18,7 @@ export function MaterialHistoryRow({ item, expanded, onToggle }: {
   const color = neutral ? '#6b7280' : variation > 0 ? '#b91c1c' : '#15803d';
   const background = neutral ? '#f3f4f6' : variation > 0 ? '#fef2f2' : '#f0fdf4';
   const variationLabel = !changed ? 'Inicial' : variation === null ? 'Sem comparação' : variation === 0 ? '0%' :
-    Math.abs(variation) < 0.01 ? (variation > 0 ? '+< 0,01%' : '−< 0,01%') : (variation > 0 ? '+' : '') + variation.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '%';
+    Math.abs(variation) < 0.01 ? (variation > 0 ? '+< 0,01%' : '−< 0,01%') : (variation > 0 ? '+' : '') + formatNumber(variation) + '%';
   const reference = formatCurrency(item.costCents) + ' / ' + formatReferenceQuantity(item.quantity, item.unit);
   const target = comparisonUnit(item.unit);
   const equivalent = target ? equivalentPrice(item.costCents, item.quantity, item.unit, target) : null;

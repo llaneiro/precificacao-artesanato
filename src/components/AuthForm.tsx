@@ -24,7 +24,7 @@ export function AuthForm({ registering = false, onSubmit, onSwitch, onReset }: A
   const [sent, setSent] = useState(false);
   const busyRef = useRef(false);
   const [emailFocused, setEmailFocused] = useState(false);
-  const appName = Constants.expoConfig?.name ?? 'Precificação Artesanal';
+  const appName = Constants.expoConfig?.name ?? 'Precifica Arte';
   const title = recovering ? 'Recuperar senha' : registering ? 'Criar sua conta' : 'Entrar na sua conta';
   const description = recovering ? 'Informe seu e-mail para receber um link de recuperação.' : registering ? 'Comece a organizar os custos e preços das suas criações.' : 'Acesse seus produtos, materiais e precificações.';
 
